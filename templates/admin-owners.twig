@@ -37,13 +37,7 @@
 {% endif %}
 
 {# -- set up the language map -- #}
-{% set capitalizedLanguageMap = craft.emstats.getLanguageMap %}
-{% set languageMap = {} %}
-{% for key, value in capitalizedLanguageMap %}
-    {% set capitalizedKey = key|upper %}
-    {% set languageMap = languageMap|merge({(capitalizedKey): value}) %}
-{% endfor %}
-{% set languages = languageMap|keys %}
+{% set languageMap = craft.emstats.getLanguageMap %} 
 
 {% set totalVisitsPerVenue = craft.emstats.getTotalVisitsPerVenue(selectedUserId) %}
 {% set totalVisitsPerMovie = craft.emstats.getTotalVisitsPerMovie(selectedUserId) %}

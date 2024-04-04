@@ -34,8 +34,9 @@ class StatsService extends Component
             'de' => ['name' => 'German', 'color' => 'bg-cyan-500', 'hex' => '#06b6d4'],
             'it' => ['name' => 'Italian', 'color' => 'bg-blue-500', 'hex' => '#3b82f6'],
             'pt' => ['name' => 'Portuguese', 'color' => 'bg-violet-500', 'hex' => '#8b5cf6'],
-            'cr' => ['name' => 'Croatian', 'color' => 'bg-fuchsia-500', 'hex' => '#d946ef'],
+            'hr' => ['name' => 'Croatian', 'color' => 'bg-fuchsia-500', 'hex' => '#d946ef'],
             'ba' => ['name' => 'Bosnian', 'color' => 'bg-rose-500', 'hex' => '#f43f5e'],
+
         ];
     }
 

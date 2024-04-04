@@ -9,13 +9,7 @@
 {% set userId = currentUser.id %} {# Get the ID of the logged in user #}
 
 {# -- set up the language map -- #}
-{% set capitalizedLanguageMap = craft.emstats.getLanguageMap %}
-{% set languageMap = {} %}
-{% for key, value in capitalizedLanguageMap %}
-    {% set capitalizedKey = key|upper %}
-    {% set languageMap = languageMap|merge({(capitalizedKey): value}) %}
-{% endfor %}
-{% set languages = languageMap|keys %}
+{% set languageMap = craft.emstats.getLanguageMap %} 
 
 {# -- count total overall visits -- #}
 {% set totalEntries = craft.emstats.getTotalVisitsCount %}
