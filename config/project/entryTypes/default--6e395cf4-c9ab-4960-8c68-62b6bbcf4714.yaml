@@ -1,0 +1,94 @@
+fieldLayouts:
+  1a5270c8-f8f6-4f71-959e-d7a32533b197:
+    tabs:
+      -
+        elementCondition: null
+        elements:
+          -
+            autocapitalize: true
+            autocomplete: false
+            autocorrect: true
+            class: null
+            disabled: false
+            elementCondition: null
+            id: null
+            instructions: null
+            label: null
+            max: null
+            min: null
+            name: null
+            orientation: null
+            placeholder: null
+            readonly: false
+            requirable: false
+            size: null
+            step: null
+            tip: null
+            title: null
+            type: craft\fieldlayoutelements\entries\EntryTitleField
+            uid: 64eb4453-9b20-475c-949e-2d7a5e5562a7
+            userCondition: null
+            warning: null
+            width: 100
+          -
+            elementCondition: null
+            fieldUid: 73ccaa0c-844d-46d0-8b58-e33c1baaa8f2 # Venue Currency Type
+            instructions: null
+            label: null
+            required: false
+            tip: null
+            type: craft\fieldlayoutelements\CustomField
+            uid: 64617af7-43bf-4c01-82fc-f285df54ecbd
+            userCondition: null
+            warning: null
+            width: 100
+          -
+            elementCondition: null
+            fieldUid: 312b4f06-f575-487d-8777-e646ddb19ba6 # Venue Ticket Price
+            instructions: null
+            label: null
+            required: false
+            tip: null
+            type: craft\fieldlayoutelements\CustomField
+            uid: 8ac14d5b-89ce-446a-bd21-1ab2bd3a9aeb
+            userCondition: null
+            warning: null
+            width: 100
+          -
+            elementCondition: null
+            fieldUid: 0084065a-21dc-4833-9064-d97f4e1c9bca # Venue Opening Time
+            instructions: null
+            label: null
+            required: false
+            tip: null
+            type: craft\fieldlayoutelements\CustomField
+            uid: 9613bd6c-ed15-456c-a016-2c73a74aa965
+            userCondition: null
+            warning: null
+            width: 100
+          -
+            elementCondition: null
+            fieldUid: cc7c385a-fa47-48b0-8edb-006e60e4b8f1 # Venue Closing Time
+            instructions: null
+            label: null
+            required: false
+            tip: null
+            type: craft\fieldlayoutelements\CustomField
+            uid: 2a6466e8-6d24-49b9-b418-e7cd3c5ad96a
+            userCondition: null
+            warning: null
+            width: 100
+        name: Content
+        uid: 2daef3ad-2dcf-4b09-a6af-4d8904001084
+        userCondition: null
+handle: default
+hasTitleField: true
+name: Default
+section: fa1a9449-1cdb-4185-8017-6d6baea8371b # Venues
+showStatusField: true
+slugTranslationKeyFormat: null
+slugTranslationMethod: site
+sortOrder: 1
+titleFormat: null
+titleTranslationKeyFormat: null
+titleTranslationMethod: site

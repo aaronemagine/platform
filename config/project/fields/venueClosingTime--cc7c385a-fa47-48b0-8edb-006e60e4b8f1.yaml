@@ -1,0 +1,14 @@
+columnSuffix: hjwvgxqr
+contentColumnType: time
+fieldGroup: cfe8b169-e903-42f6-92ac-f4af56aa1ab8 # Venues
+handle: venueClosingTime
+instructions: null
+name: 'Venue Closing Time'
+searchable: false
+settings:
+  max: null
+  min: null
+  minuteIncrement: 30
+translationKeyFormat: null
+translationMethod: none
+type: craft\fields\Time

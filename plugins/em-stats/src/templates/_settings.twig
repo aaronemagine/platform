@@ -1,0 +1,34 @@
+{# @var plugin \emagine\emstats\EmStats #}
+{# @var settings \emagine\emstats\models\Settings #}
+
+{% import '_includes/forms.twig' as forms %}
+
+{# Add a field for editing the language #}
+<h3>Languages</h3>
+
+
+{# Include your JavaScript file for handling dynamic form rows #}
+{% do view.registerJsFile(url('resources/js/dynamic-form-handler.js')) %}
+
+<form method="post" accept-charset="UTF-8">
+    {{ csrfInput() }}
+    {{ actionInput('em-stats/settings/save') }}
+    <input type="hidden" name="action" value="em-stats/settings">
+    
+    {# Loop through each language setting and create a row for it #}
+    <div id="languages-settings-container">
+        {% for i, languageSetting in settings.languageSettings %}
+            <div class="language-setting-row">
+                <input type="text" name="settings[languageSettings][{{ i }}][code]" value="{{ languageSetting.code }}" placeholder="Code">
+                <input type="text" name="settings[languageSettings][{{ i }}][name]" value="{{ languageSetting.name }}" placeholder="Name">
+                <input type="text" name="settings[languageSettings][{{ i }}][color]" value="{{ languageSetting.color }}" placeholder="Color class">
+                <input type="text" name="settings[languageSettings][{{ i }}][hex]" value="{{ languageSetting.hex }}" placeholder="HEX">
+                <button type="button" class="remove-language-button">Remove</button>
+            </div>
+        {% endfor %}
+    </div>
+
+    <button type="button" id="add-language-button">Add Language</button>
+
+    <input type="submit" value="Save">
+</form>

@@ -1,0 +1,17 @@
+columnSuffix: zzxlubly
+contentColumnType: datetime
+fieldGroup: d4460fc8-b976-4652-92d2-7d820d7502ef # Statistics
+handle: visitStart
+instructions: null
+name: 'Visit Start'
+searchable: false
+settings:
+  max: null
+  min: null
+  minuteIncrement: 30
+  showDate: true
+  showTime: true
+  showTimeZone: false
+translationKeyFormat: null
+translationMethod: none
+type: craft\fields\Date

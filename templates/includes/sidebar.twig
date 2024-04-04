@@ -1,0 +1,48 @@
+<aside class="flex-none w-1/5 p-4 ">
+
+
+    <nav class="border rounded-lg border-gray-700 bg-gray-900 text-white sm:p-6 mt-1.5">
+
+        <img src="/assets/analytics-logo3.webp" alt="Analytics Logo" class="w-9/10 mx-auto mb-1.5"> 
+
+        {#!-- Statistics Section --#}
+        <div class="sm:p-6 bg-gray-900 text-white">
+            <h3 class="text-xl font-bold mb-2">Statistics</h3>
+            <ul>
+                <li>
+                    <a href="dashboard" class="text-gray-200 rounded hover:bg-gray-300">Dashboard</a>
+                </li>
+{#                 <li>
+                    <a href="view-venues" class="text-gray-200 rounded hover:bg-gray-300">Venues</a>
+                </li> #}
+                <li>
+                    <a href="view-headsets" class="text-gray-200 rounded hover:bg-gray-300">Headsets</a>
+                </li>
+            </ul>
+        </div>
+
+        {#!-- Administration Section --#}
+        <div class=" sm:p-6 bg-gray-900 text-white">
+            <h3 class="text-xl font-bold mb-2">Admin</h3>
+            <ul>
+                <li>
+                    <a href="/venues" class="text-gray-200 rounded hover:bg-gray-300">Venues</a>
+                </li>
+                <li>
+                    <a href="/headsets" class="text-gray-200 rounded hover:bg-gray-300">Headsets</a>
+                </li>
+                <li>
+                    <a href="/edit-profile" class="text-gray-200 rounded hover:bg-gray-300">Profile</a>
+                </li>
+                <li>
+                    <form method="post" action="" accept-charset="UTF-8" class="inline text-gray-200 rounded hover:bg-gray-300">
+                        {{ csrfInput() }}
+                        <input type="hidden" name="action" value="users/logout">
+                        <button type="submit" class="text-white">Logout</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+
+    </nav>
+</aside>

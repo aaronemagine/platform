@@ -1,0 +1,119 @@
+
+
+{% extends 'includes/main.twig' %}
+
+{% block content %}
+
+{% if not currentUser %}
+    {% redirect 'index' %}
+{% endif %}
+
+{% set user = user ?? currentUser %}
+
+<div class="flex min-h-screen">
+
+    {% include 'includes/sidebar.twig' %}
+
+    <!-- Main Content Area -->
+    <div class="flex-grow w-full bg-grey-500 p-4">
+        
+    <div class="p-4 border rounded-lg shadow 2xl:col-span-2 border-gray-700 sm:p-6 bg-gray-800 text-white ">
+        {% macro errorList(errors) %}
+          {% if errors %}
+            {{ ul(errors, {class: 'errors'}) }}
+          {% endif %}
+        {% endmacro %}
+
+        {# If there were any validation errors, a `user` variable will be passed to the
+           template, which contains the posted values and validation errors. If that’s not
+           set, we’ll default to the current user. #}
+        {% set user = user ?? currentUser %}
+
+        {% if user.hasErrors() %}
+          <p>Unable to save your profile.</p>
+        {% endif %}
+
+        <form method="post" accept-charset="UTF-8" enctype="multipart/form-data" class="grid grid-cols-2 gap-4">
+          {{ csrfInput() }}
+          {{ actionInput('users/save-user') }}
+          {{ hiddenInput('userId', user.id) }}
+          {{ redirectInput('welcome') }}
+        
+        <div class="col-span-1">
+            <label for="full-name" class="block mb-2">Full Name</label>
+            {{ input('text', 'fullName', user.fullName, {
+                id: 'full-name',
+                class: 'w-4/5 p-2 border border-gray-300 rounded text-black',
+                autocomplete: 'name',
+            }) }}
+            {{ _self.errorList(user.getErrors('fullName')) }}
+        </div>
+
+        <div class="col-span-1">
+            <label for="companyName" class="block mb-2">Company Name</label>
+            {{ input('text', 'companyName', user.companyName, {
+                id: 'companyName',
+                class: 'w-4/5 p-2 border border-gray-300 rounded text-black',
+                autocomplete: 'companyName',
+            }) }}
+            {{ _self.errorList(user.getErrors('companyName')) }}
+        </div>
+
+        <div class="col-span-1">
+            <label for="username" class="block mb-2">Username</label>
+            {{ input('text', 'username', user.username, {
+                id: 'username',
+                class: 'w-4/5 p-2 border border-gray-300 rounded text-black',
+                autocomplete: 'username',
+            }) }}
+            {{ _self.errorList(user.getErrors('username')) }}
+        </div>
+
+        <div class="col-span-1">
+            <label for="new-password" class="block mb-2">New Password</label>
+            {{ input('password', 'newPassword', null, {
+                id: 'new-password',
+                class: 'w-4/5 p-2 border border-gray-300 rounded text-black',
+                autocomplete: 'new-password',
+            }) }}
+            {{ _self.errorList(user.getErrors('newPassword')) }}
+        </div>
+
+                <div class="col-span-1">
+            <label for="email" class="block mb-2">Email</label>
+            {{ input('text', 'email', user.unverifiedEmail ?? user.email, {
+                id: 'email',
+                class: 'w-4/5 p-2 border border-gray-300 rounded text-black',
+                autocomplete: 'email',
+            }) }}
+            {{ _self.errorList(user.getErrors('email')) }}
+        </div>
+
+        <div class="col-span-1">
+            <label for="current-password" class="block mb-2">Current Password</label>
+            {{ input('password', 'password', null, {
+                id: 'current-password',
+                class: 'w-4/5 p-2 border border-gray-300 rounded text-black',
+                autocomplete: 'current-password',
+            }) }}
+            {{ _self.errorList(user.getErrors('currentPassword')) }}
+        </div>
+
+
+        <div class="col-span-2">
+            <button class="bg-amber-700 hover:bg-amber-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Save Profile
+            </button>
+        </div>
+
+      </form>
+
+    </div>
+        
+    </main>
+    
+</div>
+
+{% endblock %}
+
+

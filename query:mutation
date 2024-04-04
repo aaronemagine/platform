@@ -1,0 +1,201 @@
+Standard query
+
+=====================
+
+query MyQuery {
+  statisticsEntries {
+    ... on statistics_default_Entry {
+      id
+      title
+      headsetId
+      movieId
+      movieName
+      venueId
+      visitLanguage
+      visitStart
+    }
+  }
+}
+
+=====================
+
+Query filtered by users
+
+=====================
+
+
+query MyQuery {
+  statisticsEntries(authorId: "32") {
+    ... on statistics_default_Entry {
+      id
+      title
+      headsetId
+      movieId
+      movieName
+      venueId
+      visitLanguage
+      visitStart
+      author {
+        id
+        fullName
+      }
+    }
+  }
+}
+
+query MyQuery {
+  statisticsEntries(authorId: "1") {
+    ... on statistics_default_Entry {
+      id
+      title
+      headset {
+        id
+      }
+      movie {
+        id
+      }
+      venue {
+        id
+      }
+      visitLanguage
+      visitStart
+      authorId
+    }
+  }
+}
+
+=====================
+
+standard entry
+
+=====================
+
+
+mutation MyMutation {
+  save_statistics_default_Entry(
+    title: "graphQL entry again"
+    headsetId: "1"
+    movieId: "1"
+    movieName: "Echoes Of Sarajevo"
+    venueId: "3"
+    visitLanguage: "en"
+    visitStart: "2023-09-29 10:45:01"
+  ) {
+    id
+    headsetId
+    movieId
+    movieName
+    venueId
+    visitLanguage 
+    visitStart @formatDateTime (format: "Y-m-d H:i:s")
+  }
+}
+
+mutation MyMutation {
+  save_statistics_default_Entry(
+    authorId:120
+    title: "graphQL entry again"
+    headset: 13
+    movie: 18
+    venue: 4
+    visitLanguage: "en"
+    visitStart: "2023-11-12 10:45:01"
+  ) {
+    id
+    authorId
+    headset {
+      id
+    }
+    movie {
+      id
+    }
+    venue {
+      id
+    }
+    visitLanguage 
+    visitStart @formatDateTime (format: "Y-m-d H:i:s")
+  }
+}
+
+=====================
+
+entry with auth
+
+=====================
+Authorization: Bearer fXo5COJ6DhCoTgASIXM3qvcx2-rlOTJ8
+
+curl \
+  -H "Authorization: Bearer fXo5COJ6DhCoTgASIXM3qvcx2-rlOTJ8" \
+  -H "Content-Type: application/graphql" \
+  -d '  query MyQuery {
+  headsetsEntries(authorId: "120") {
+    ... on headsets_default_Entry {
+      id
+      authorId
+      uuid
+      title
+      familiarId
+    }
+  }
+}
+' \
+  http://stats.emaginevr.com/api
+
+
+  query MyQuery {
+  headsetsEntries(authorId: "120") {
+    ... on headsets_default_Entry {
+      id
+      authorId
+      uuid
+      title
+      familiarId
+    }
+  }
+}
+
+
+=====================
+
+entry with author ID
+
+=====================
+
+
+curl \
+  -H "Content-Type: application/graphql" \
+  -H "Authorization: Bearer bUX_-31uQYr0i6AAVv1vFE6ycN_Xi4uI" \
+  -d 'mutation MyMutation {
+  save_statistics_default_Entry(
+    authorId:120
+    title: "Aaron Test"
+    headset: 13
+    movie: 18
+    venue: 4
+    visitLanguage: "fr"
+    visitStart: "2023-11-11 10:45:01"
+  ) {
+    id
+    authorId
+    headset {
+      id
+    }
+    movie {
+      id
+    }
+    venue {
+      id
+    }
+    visitLanguage 
+    visitStart @formatDateTime (format: "Y-m-d H:i:s")
+  }
+}' \
+  http://stats.emaginevr.com/api
+
+stats.emaginevr.com
+e582614_stats_db
+e582614_stats_us3r
+jF6DbP!mGxGT
+
+
+

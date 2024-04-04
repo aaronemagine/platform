@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emagine Analytics</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-800 min-h-screen flex items-center justify-center">
+
+<div class="bg-gray-900 p-8 rounded shadow-lg w-full max-w-sm text-center">
+    <!-- Logo -->
+    <img src="/assets/analytics-logo3.webp" alt="Curio City" class="mb-6 mx-auto h-100 w-auto">    
+    <form method="post" accept-charset="UTF-8">
+        {{ csrfInput() }}
+        {{ actionInput('users/login') }}
+        {{ redirectInput('check-user-group') }}
+        <div class="mb-4">
+            <label for="loginName" class="block text-white mb-2">Username</label>
+            <input type="text" name="loginName" id="loginName" class="w-full px-3 py-2 rounded bg-gray-900 text-white placeholder-gray-500 border border-gray-700" required>
+        </div>
+        
+        <div class="mb-4">
+            <label for="password" class="block text-white mb-2">Password</label>
+            <input type="password" name="password" id="password" class="w-full px-3 py-2 rounded bg-gray-900 text-white placeholder-gray-500 border border-gray-700" required>
+            <label class="text-white">
+                {{ input('checkbox', 'rememberMe', '1') }}
+                Remember me
+            </label>
+        </div>
+        {% if errorMessage is defined %}
+        <div class="mb-4">
+             <p class="text-red-500">{{ errorMessage }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="flex justify-between items-center mb-4">
+            <a href="{{ url('reset-password') }}" class="text-sm text-blue-500 hover:underline">Forgot Password?</a>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Login</button>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

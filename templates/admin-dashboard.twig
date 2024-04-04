@@ -1,0 +1,328 @@
+{% extends 'includes/main.twig' %}
+
+{% block content %}
+
+{% if not currentUser %}
+    {% redirect 'index' %}
+{% endif %}
+
+{% set userId = currentUser.id %} {# Get the ID of the logged in user #}
+
+{# -- set up the language map -- #}
+{% set capitalizedLanguageMap = craft.emstats.getLanguageMap %}
+{% set languageMap = {} %}
+{% for key, value in capitalizedLanguageMap %}
+    {% set capitalizedKey = key|upper %}
+    {% set languageMap = languageMap|merge({(capitalizedKey): value}) %}
+{% endfor %}
+{% set languages = languageMap|keys %}
+
+{# -- count total overall visits -- #}
+{% set totalEntries = craft.emstats.getTotalVisitsCount %}
+{% set totalVisitsPerLanguage = craft.emstats.getTotalVisitsPerLanguage() %}
+{% set totalVisitsPerVenue = craft.emstats.getTotalVisitsPerVenue() %}
+{% set totalVisitsPerMovie = craft.emstats.getTotalVisitsPerMovie() %}
+
+{% set currentDateParam = craft.app.request.getParam('date') %}
+{% set weekNavUrls = craft.emstats.getWeekNavigationUrls(currentDateParam) %}
+{% set weeklyStats = craft.emstats.getWeeklyStats(currentDateParam) %}
+
+{% set monthParam = craft.app.request.getParam('month') %}
+{% set monthlyStats = craft.emstats.calculateMonthlyStats(monthParam) %}
+{% set monthNavUrls = craft.emstats.getMonthNavigationUrls(monthParam) %}
+
+
+<div class="flex min-h-screen">
+
+    {% include 'includes/admin-sidebar.twig' %}
+
+    {#-- Main Content Area --#}
+    <div class="flex-grow w-full bg-grey-500 p-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+       
+            <div class="p-4 border rounded-lg shadow-2xl col-span-2 border-gray-700 sm:p-6 bg-gray-800 text-white">
+     
+           
+
+                <div class="grid grid-rows-3 gap-4">
+                    {% if totalEntries %}
+                        <div class="row-span-1">
+                            <h2 class="text-l font-bold mb-2">Total Plays: {{ totalEntries }}</h2>
+                        </div>
+                    {% endif %}
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+
+                        {% if totalVisitsPerLanguage %}
+                            <div class="col-span-1">
+                                <h3 class="text-l font-bold mb-2">Plays By Language:</h3>
+                                <ul class="list-disc pl-5">
+                                    {% for code, total in totalVisitsPerLanguage %}
+                                        {% set languageName = languageMap[code].name ?? code %}
+                                        <li>{{ languageName }}: {{ total }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        {% if totalVisitsPerVenue %}
+                            <div class="col-span-1">
+                                <h3 class="text-l font-bold mb-2">Plays By Venue:</h3>
+                                <ul class="list-disc pl-5">
+                                    {% for venueName, total in totalVisitsPerVenue %}
+                                        <li>{{ venueName }}: {{ total }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        {% if totalVisitsPerMovie %}
+                            <div class="col-span-1">
+                                <h3 class="text-l font-bold mb-2">Plays By Experience:</h3>
+                                <ul class="list-disc pl-5">
+                                    {% for movieName, total in totalVisitsPerMovie %}
+                                        <li>{{ movieName }}: {{ total }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="p-4 border rounded-lg shadow-2xl col-span-1 border-gray-700 sm:p-6 bg-gray-800 text-white">
+                <div class="flex">
+                    <div class="w-1/3"></div>
+                    <div class="w-2/3">
+                        <canvas id="languagePieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+         </div>
+
+   
+         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mt-4 p-4 border rounded-lg shadow-sm  border-gray-700 bg-gray-800 text-white">
+            <div>
+                {% if currentDateParam %}
+                    {% set mondayOfWeek = currentDateParam|date('Y-m-d')|date_modify('Monday this week') %}
+                    <h3 class="text-xl font-bold mb-2">Plays Week Of {{ mondayOfWeek|date('F jS, Y') }}</h3>
+                {% else %}
+                    <h3 class="text-xl font-bold mb-2">Plays This Week</h3>
+                {% endif %}
+
+                <canvas id="visitsThisWeekChart"></canvas> 
+                <div class="flex justify-between pt-1">
+                    <a href="{{ weekNavUrls.prevWeekUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        Prev Week
+                    </a>
+                    <a href="{{ weekNavUrls.nextWeekUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        Next Week
+                    </a>
+                </div>
+            </div>
+            <div>
+                {% if monthParam %}
+                    {% set monthDate = monthParam|date('Y-m-d') %}
+                    {% set monthName = monthDate|date('F, Y') %}
+                    <h3 class="text-xl font-bold mb-2">Plays in {{ monthName }}</h3>
+                {% else %}
+                    <h3 class="text-xl font-bold mb-2">Plays This Month</h3>
+                {% endif %}
+                <canvas id="weeklyVisitsThisMonthChart"></canvas>             
+                <div class="flex justify-between pt-1">
+                    <a href="{{ monthNavUrls.prevMonthUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        Prev Month
+                    </a>
+                    <a href="{{ monthNavUrls.nextMonthUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        Next Month
+                    </a>
+                </div>
+            </div>
+        </div>
+
+{#         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mt-4 p-4 border rounded-lg shadow-sm  border-gray-700 bg-gray-800 text-white">
+            <!-- Card 1 -->
+            <div>
+                <h3 class="text-xl font-bold mb-2">Income This Week</h3>
+                <canvas id="barWeekChart"></canvas> 
+            </div>
+
+            <!-- Card 2 -->
+            <div>
+                <h3 class="text-xl font-bold mb-2">Income This Month</h3>
+                <canvas id="barMonthChart"></canvas>
+            </div>
+        </div> #}
+    </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // Check if languageMap is defined
+    const languageMap = {{ languageMap|json_encode|raw }};
+    if (typeof languageMap === 'undefined') {
+        console.error('languageMap is not defined');
+        return; // Stop execution if languageMap is not defined
+    }
+
+    // Draw 'languagePieChart' pie chart
+    const totalVisitsPerLanguage = JSON.parse('{{ totalVisitsPerLanguage|json_encode|raw }}');
+    const labels = [];
+    const data = [];
+    const colors = [];
+
+    // Loop through totalVisitsPerLanguage and populate labels, data, and colors
+    Object.keys(totalVisitsPerLanguage).forEach(code => {
+        if (languageMap[code]) { // Check if the language code exists in languageMap
+            labels.push(languageMap[code].name);
+            data.push(totalVisitsPerLanguage[code]);
+            colors.push(languageMap[code].hex);
+        } else {
+            console.error('Language code ' + code + ' does not exist in languageMap');
+        }
+    });
+
+    // Creating the pie chart
+    const pieCtx = document.getElementById('languagePieChart').getContext('2d');
+    new Chart(pieCtx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{ data: data, backgroundColor: colors, borderWidth: 0 }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: true, position: 'left' }
+            }
+        }
+    });
+
+    // Draw 'weeklyStats' graph
+    const weeklyStats = {{ weeklyStats|json_encode|raw }};
+    const languageDayData = weeklyStats.languageDayData; 
+    const totalVisitsPerDay = weeklyStats.totalVisitsPerDay;
+    const dayLabels = Object.keys(totalVisitsPerDay); 
+
+    // Initialize datasets array
+    let datasets = [];
+
+    // Add the line graph dataset for total visits per week
+    datasets.push({
+        type: 'line', // Specifies a line dataset for the total visits
+        label: 'Total Plays',
+        data: dayLabels.map(day => totalVisitsPerDay[day]), // Map day labels to total visit counts
+        backgroundColor: 'rgba(255, 255, 255, 0)', 
+        borderColor: 'white',
+        borderWidth: 2,
+        fill: false
+    });
+
+    // Add bar chart datasets for each language
+    Object.keys(languageMap).forEach(languageCode => {
+        let languageData = dayLabels.map(day => {
+            return languageDayData[day][languageCode] || 0; // Fallback to 0 if no data
+        });
+
+        datasets.push({
+            label: languageMap[languageCode].name, // Language name from your language map
+            data: languageData, // Language-specific visit counts
+            backgroundColor: languageMap[languageCode].hex, // Language color from your language map
+            borderColor: languageMap[languageCode].hex,
+            borderWidth: 1,
+            stack: 'stacked' // Stack the bars
+        });
+    });
+
+    // Assuming 'visitsCtx' is the 2D context of a canvas element
+    const visitsCtx = document.getElementById('visitsThisWeekChart').getContext('2d');
+    new Chart(visitsCtx, {
+        type: 'bar',
+        data: { 
+            labels: dayLabels,
+            datasets: datasets
+        },
+        options: {
+            indexAxis: 'x',
+            scales: {
+                x: { stacked: true },
+                y: { stacked: true }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Draw 'weeklyVisitsThisMonthChart' graph
+    const monthlyStatsData = JSON.parse('{{ monthlyStats|json_encode|raw }}');
+    const weeklyCtx = document.getElementById('weeklyVisitsThisMonthChart').getContext('2d');
+    const weekLabels = monthlyStatsData.weekLabels;
+    const weeklyLanguageVisits = monthlyStatsData.weeklyLanguageVisits;
+    const totalVisitsPerWeek = monthlyStatsData.totalVisitsPerWeek;
+
+    // Initialize datasets array
+    datasets = [];
+
+    // Add the line graph dataset for total visits per week
+    datasets.push({
+        type: 'line', // Specifies a line dataset for the total visits
+        label: 'Total Plays',
+        data: Object.values(totalVisitsPerWeek), // Use the values from the totalVisitsPerWeek object
+        backgroundColor: 'rgba(255, 255, 255, 0)', 
+        borderColor: 'white',
+        borderWidth: 2,
+        fill: false
+    });
+
+    // Add bar chart datasets for each language
+    Object.keys(weeklyLanguageVisits).forEach(languageCode => {
+        let languageData = weekLabels.map(weekLabel => weeklyLanguageVisits[languageCode][weekLabel] || 0);
+
+        datasets.push({
+            label: languageMap[languageCode].name, // Get the language name
+            data: languageData, // Language-specific visit counts
+            backgroundColor: languageMap[languageCode].hex, // Get the hex color
+            borderColor: languageMap[languageCode].hex,
+            borderWidth: 1,
+            stack: 'stacked' // This is needed to stack bars on top of each other
+        });
+    });
+
+    // Create the Chart instance
+    new Chart(weeklyCtx, {
+        type: 'bar',
+        data: {
+            labels: weekLabels,
+            datasets: datasets
+        },
+        options: {
+            indexAxis: 'x',
+            scales: {
+                x: { stacked: true },
+                y: { stacked: true }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+});
+</script>
+
+{% endblock %}
+
+
+
+

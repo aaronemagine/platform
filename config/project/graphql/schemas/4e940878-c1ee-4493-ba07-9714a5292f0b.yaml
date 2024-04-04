@@ -1,0 +1,12 @@
+isPublic: false
+name: 'Stats Schema'
+scope:
+  - 'sites.f957802c-8f19-44d3-a30a-668d452862ac:read' # Emagine VR Analytics
+  - 'sections.cb843ec5-3aaa-44ea-94cf-f99f4023642f:read' # Statistics
+  - 'entrytypes.df793da0-9723-422b-a370-2e9c303381d0:read' # Default
+  - 'usergroups.32c28836-80b3-4da9-a427-6d42b223613b:read' # Clients
+  - 'sections.cb843ec5-3aaa-44ea-94cf-f99f4023642f:edit' # Statistics
+  - 'entrytypes.df793da0-9723-422b-a370-2e9c303381d0:edit' # Default
+  - 'entrytypes.df793da0-9723-422b-a370-2e9c303381d0:create' # Default
+  - 'entrytypes.df793da0-9723-422b-a370-2e9c303381d0:save' # Default
+  - 'entrytypes.df793da0-9723-422b-a370-2e9c303381d0:delete' # Default

@@ -1,0 +1,13 @@
+{# {{ dump(currentUser.getGroups()) }} #}
+
+{% if currentUser %}
+    {% if currentUser.isInGroup('Clients') %}
+        {% redirect 'dashboard' %}
+    {% elseif currentUser.isInGroup('admin') %}
+        {% redirect 'admin-dashboard' %}
+    {% else %}
+    {% endif %}
+{% else %}
+    {# If no user is logged in, redirect back to login or another appropriate page #}
+    {% redirect 'login' %}
+{% endif %}

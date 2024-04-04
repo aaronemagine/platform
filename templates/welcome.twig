@@ -1,0 +1,434 @@
+{% extends 'includes/main.twig' %}
+
+{% block content %}
+
+{% if not currentUser %}
+    {% redirect 'index' %}
+{% endif %}
+
+
+
+{% set userId = currentUser.id %} {# Get the ID of the logged in user #}
+{% set criteria = { section: 'statistics', authorId: userId } %} {# Set the criteria for the entry query #}
+{% set entries = craft.entries(criteria).all() %} {# Fetch the entries based on the criteria #}
+{% set totalVisits = 0 %} {# Initialize a variable to hold the total visits count #}
+{% set languageCounts = {} %} {# Initialize an empty associative array to hold the language counts #}
+{% set venueCounts = {} %} {# Initialize an empty associative array to hold the venue counts #}
+
+
+{# Define a mapping of language codes to full language names #}
+{% set languageMap = {
+    'en': 'English',
+    'ba': 'Bosnian'
+} %}
+
+{# Initialize totalIncome variable #}
+{% set totalIncome = 0 %}
+{% set totalVisits = 0 %}
+{% set venueIncomeCounts = {} %} {# Initialize venueIncomeCounts variable #}
+
+
+{% for entry in entries %} {# Iterate through each entry #}
+    {% set totalVisits = totalVisits + 1 %} {# Sum the visits count #}
+
+    {% set languageCode = entry.visitLanguage %} {# Get the language code of the current entry #}
+    {% set language = languageMap[languageCode] ?? 'Unknown' %} {# Translate the language code to a full language name using the mapping #}
+    {% if languageCounts[language] is defined %} {# If the language is already in the array, increment the count #}
+        {% set languageCounts = languageCounts|merge({(language): languageCounts[language] + 1}) %}
+    {% else %} {# If the language is not in the array, add it with a count of 1 #}
+        {% set languageCounts = languageCounts|merge({(language): 1}) %}
+    {% endif %}
+
+    {% if entry.venue|length %}
+            {# Get the related venue entry #}
+            {% set venueEntry = entry.venue.one() %}
+            {% set venueTitle = venueEntry.title %}
+            {% set ticketPrice = venueEntry.venueTicketPrice %} {# Assuming venueTicketPrice is the field name for ticket price #}
+        {% endif %}
+        {% if venueCounts[venueTitle] is defined %}
+            {% set venueCounts = venueCounts|merge({(venueTitle): venueCounts[venueTitle] + 1}) %}
+        {% else %}
+            {% set venueCounts = venueCounts|merge({(venueTitle): 1}) %}
+        {% endif %}
+
+        {% if venueIncomeCounts[venueTitle] is defined %}
+            {% set venueIncomeCounts = venueIncomeCounts|merge({(venueTitle): venueIncomeCounts[venueTitle] + ticketPrice}) %}
+        {% else %}
+            {% set venueIncomeCounts = venueIncomeCounts|merge({(venueTitle): ticketPrice}) %}
+        {% endif %}
+
+        {% set totalIncome = totalIncome + ticketPrice %} {# Update the total income #}
+    {% endfor %}
+
+
+
+{# Get the current date and time #}
+{% set now = "now"|date("c") %}
+{# Get the date and time for 7 days ago #}
+{% set sevenDaysAgo = now|date_modify("-7 days")|date("c") %}
+
+{# Initialize an array to hold the labels for the X-axis #}
+{% set days = [] %}
+
+{# Populate the days array with formatted date and day name for the last 7 days #}
+{% for i in 6..0 %}
+    {% set day = now|date_modify("- " ~ i ~ " days")|date('D, d') %}
+    {% set days = days|merge([day]) %}
+{% endfor %}
+
+{# Query the entries from the 'statistics' channel for the last 7 days #}
+{% set entries = craft.entries.section('statistics').after(sevenDaysAgo).before(now).all() %}
+
+{# Initialize a nested associative array to hold the counts per day per language with zeros #}
+{% set dayLanguageCounts = {'en': {}, 'ba': {}} %}
+
+{% for day in days %}
+    {% set dayLanguageCounts = dayLanguageCounts|merge({
+        'en': dayLanguageCounts['en']|merge({(day): 0}),
+        'ba': dayLanguageCounts['ba']|merge({(day): 0})
+    }) %}
+{% endfor %}
+
+{# Accumulate the counts per day per language #}
+{% for entry in entries %}
+    {% set dayOfWeek = entry.visitStart|date('D, d') %}
+    {% set language = entry.visitLanguage %}
+    {% if dayLanguageCounts[language][dayOfWeek] is defined %}
+        {% set dayLanguageCounts = dayLanguageCounts|merge({
+            (language): dayLanguageCounts[language]|merge({
+                (dayOfWeek): dayLanguageCounts[language][dayOfWeek] + 1
+            })
+        }) %}
+    {% endif %}
+
+{% endfor %}
+
+{# Prepare data for the chart #}
+{% set chartLabels = dayLanguageCounts['en']|keys %}
+{% set englishData = dayLanguageCounts['en']|values %}
+{% set bosnianData = dayLanguageCounts['ba']|values %}
+
+
+<div class="flex">
+    {% include 'includes/sidebar.twig' %}
+
+    <!-- Main Content Area -->
+    <main class="flex-1 bg-gray-900 p-6">
+        
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Card 1 -->
+        <div class="p-4 border rounded-lg shadow2xl:col-span-2 border-gray-700 sm:p-6 bg-gray-800 text-white">
+            <h3 class="text-xl font-bold mb-2">Total Visits: {{ totalVisits }}</h3>
+        </div>
+     
+        <!-- Card 2 -->
+        <div class="p-4 border rounded-lg shadow 2xl:col-span-2 border-gray-700 sm:p-6 bg-gray-800 text-white">
+            <h3 class="text-xl font-bold mb-2 ">Visits By Language:</h3>
+            {# Output the counts #}
+            {% for language, count in languageCounts %}
+                <p>{{ language }}: {{ count }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Card 3 -->
+        <div class="p-4 border rounded-lg shadow 2xl:col-span-2 border-gray-700 sm:p-6 bg-gray-800 text-white">
+            <div class="flex items-center mb-4">
+                <h3 class="text-xl font-bold mb-2">Total Income: {{ '€' ~ totalIncome|number_format(2, '.', ',') }}
+</h3>          
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Table -->
+    <div class="p-4 border rounded-lg shadow 2xl:col-span-2 border-gray-700 sm:p-6 bg-gray-800 text-white mt-4">
+        <table class="min-w-full">
+            <thead>
+                <tr>
+                    <th class="py-2 px-4">Visits This Week</th>
+                    <th class="py-2 px-4">Visit Total by Language</th>
+                    <!-- ...other headers... -->
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="py-2 px-4">
+                        <canvas id="visitsChart"></canvas>
+                    </td>
+                    <td class="py-2 px-4">
+                        <canvas id="pieChart"></canvas>
+                    </td>
+                    <!-- ...other data... -->
+                </tr>
+                <!-- ...other rows... -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ...other UI components... -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mt-4 p-4 border rounded-lg shadow-sm  border-gray-700 bg-gray-800 text-white">
+        <!-- Card 1 -->
+        <div>
+            <h3 class="text-xl font-bold mb-2">Income Per Venue</h3>
+            <canvas id="barChart"></canvas> 
+        </div>
+
+        <!-- Card 2 -->
+        <div>
+            <h3 class="text-xl font-bold mb-2">Visits Per Venue</h3>
+            <canvas id="venueChart"></canvas>
+        </div>
+    </div>
+
+        
+    </main>
+    
+</div>
+
+<script>
+  function toggleDropdown() {
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    dropdownMenu.classList.toggle('hidden');
+  }
+
+window.onload = function() {
+    const data = {
+        
+        
+        labels: [{% for language, count in languageCounts %}'{{ language }}',{% endfor %}],
+       
+        datasets: [{
+            data: [{% for language, count in languageCounts %}{{ count }},{% endfor %}],
+            backgroundColor: ['rgba(255, 159, 64, 0.2)', 'rgba(75, 192, 192, 0.2)'],
+            borderColor: ['rgba(255, 159, 64, 1)', 'rgba(75, 192, 192, 1)'],
+            borderWidth: 1
+        }]
+    };
+
+    const config = {
+        type: 'pie',
+        data: data,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: 'white'
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Total Visits',
+                    color: 'white'
+                }
+            }
+        }
+    };
+
+    const pieChart = new Chart(
+        document.getElementById('pieChart'),
+        config
+    );
+};
+
+
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const venueIncomeData = {{ venueIncomeCounts|json_encode|raw }};  // Convert Twig array to JSON
+        
+        const venues = Object.keys(venueIncomeData);  // Extract venue names
+        const incomes = Object.values(venueIncomeData);  // Extract income values
+
+        const data = {
+            labels: venues,
+            datasets: [{
+                data: incomes,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        };
+
+        // ... rest of your chart configuration and initialization code
+    });
+
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    
+    const venueIncomeData = {{ venueIncomeCounts|json_encode|raw }};  // Convert Twig array to JSON
+    const venues = Object.keys(venueIncomeData);  // Extract venue names
+    const incomes = Object.values(venueIncomeData);  // Extract income values
+
+    const data = {
+        labels: venues,
+        datasets: [{
+            data: incomes,
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    const config = {
+        type: 'bar',
+        data: data,
+        options: {
+            indexAxis: 'y',
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Income in Euro',
+                        color: 'white'
+                    },
+                    ticks: {
+                        color: 'white'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Venues',
+                        color: 'white'
+                    },
+                    ticks: {
+                        color: 'white'
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.raw;
+                        }
+                    }
+                },
+                legend: {
+                    display: false
+                }
+            }
+        }
+    };
+
+    const barChart = new Chart(
+        document.getElementById('barChart'),
+        config
+    );
+});
+
+    // Your Twig code to generate chartLabels and chartData
+    {% set chartLabels = venueCounts|keys %} {# Get the venue names #}
+    {% set chartData = venueCounts|values %} {# Get the counts #}
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const ctx = document.getElementById('venueChart').getContext('2d');
+        const data = {
+            labels: {{ chartLabels|json_encode|raw }},
+            datasets: [{
+                label: 'Visits by Venue',
+                data: {{ chartData|json_encode|raw }},
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        };
+        const config = {
+            type: 'bar',
+            data: data,
+            options: {
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Visits',
+                            color: 'white'
+                        },
+                        ticks: {
+                            color: 'white'
+                        }   
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Venues',
+                            color: 'white'
+                        },
+                        ticks: {
+                            color: 'white'
+                        } 
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        };
+        const myChart = new Chart(ctx, config);
+    });
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const ctx = document.getElementById('visitsChart').getContext('2d');
+        const data = {
+            labels: {{ days|json_encode|raw }},
+            datasets: [{
+                label: 'English',
+                data: {{ englishData|json_encode|raw }},
+                fill: false,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                tension: 0.1
+            }, {
+                label: 'Bosnian',
+                data: {{ bosnianData|json_encode|raw }},
+                fill: false,
+                borderColor: 'rgba(255, 159, 64, 1)',
+                tension: 0.1
+            }]
+        };
+        const config = {
+            type: 'line',
+            data: data,
+            options: {
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Day of the Week',
+                            color: 'white'
+                        },
+                        ticks: {
+                            color: 'white'
+                        },
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Number of Visits',
+                            color: 'white'
+                        },
+                        ticks: {
+                            color: 'white'
+                        },
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                legend: {
+                    labels: {
+                        color: 'white'
+                    }
+                }
+            }
+            }
+        };
+        const myChart = new Chart(ctx, config);
+    });
+</script>
+
+{% endblock %}

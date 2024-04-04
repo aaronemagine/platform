@@ -1,0 +1,44 @@
+<?php
+
+
+namespace yournamespace\venue\controllers;
+
+use Craft;
+use craft\web\Controller;
+use yournamespace\venue\models\Venue as VenueModel;
+use yournamespace\venue\records\Venue as VenueRecord;
+
+class VenueController extends Controller
+{
+    protected $allowAnonymous = true;
+
+    public function actionEdit(int $venueId = null)
+    {
+        $venue = $venueId ? VenueRecord::findOne($venueId) : new VenueRecord;
+
+        return $this->renderTemplate('venue/edit', [
+            'venue' => $venue,
+        ]);
+    }
+
+    public function actionSave()
+    {
+        $this->requirePostRequest();
+
+        $request = Craft::$app->getRequest();
+        $venueId = $request->getBodyParam('venueId');
+        $venue = $venueId ? VenueRecord::findOne($venueId) : new VenueRecord;
+
+        $venue->title = $request->getBodyParam('title');
+        $venue->venueTicketPrice = $request->getBodyParam('venueTicketPrice');
+        $venue->venueCurrencyType = $request->getBodyParam('venueCurrencyType');
+
+        if ($venue->save()) {
+            Craft::$app->getSession()->setNotice('Venue saved.');
+            return $this->redirectToPostedUrl();
+        }
+
+        Craft::$app->getSession()->setError('Couldn’t save venue.');
+        Craft::$app->getUrlManager()->setRouteParams(['venue' => $venue]);
+    }
+}

@@ -1,0 +1,123 @@
+{% extends 'includes/main.twig' %}
+
+{% block content %}
+
+{% if not currentUser %}
+    {% redirect 'index' %}
+{% endif %}
+
+{% set selectedUserId = currentUser.id %}
+
+
+{% if selectedUserId is not null %}
+    {% do craft.app.session.set('selectedUserId', selectedUserId) %}
+{% endif %}
+
+{# If a user ID was selected, find the company name #}
+{% if selectedUserId %}
+    {% set selectedUser = craft.users().id(selectedUserId).one() %}
+    {% if selectedUser %}
+        {% set selectedCompany = selectedUser.getFieldValue('companyName') %}
+    {% endif %}
+{% endif %}
+
+
+{# -- set up the language map -- #}
+{% set languageMap = craft.emstats.getLanguageMap %}
+{% set languages = languageMap|keys %}
+
+{% set visitsPerHeadset = craft.emstats.getVisitsPerHeadsetForCurrentUser(selectedUserId) %}
+
+{% set sortableData = [] %}
+{% for headsetId, data in visitsPerHeadset %}
+    {% set sortableData = sortableData|merge([{
+        'headsetId': headsetId,
+        'title': data.title,
+        'count': data.count
+    }]) %}
+{% endfor %}
+
+{% set sortedData = sortableData|sort((a, b) => a.headsetId <=> b.headsetId) %}
+
+<div class="flex min-h-screen">
+
+    {% include 'includes/sidebar.twig' %}
+
+    {#-- Main Content Area --#}
+    <div class="flex-grow w-full bg-grey-500 p-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+             <div class="p-4 sm:p-6 bg-gray-800 text-white border border-gray-700 rounded-lg shadow-2xl col-span-2">
+                <div class="grid grid-rows-3 gap-4">
+                    {% if selectedCompany %}
+                        <div class="row-span-1">
+                            <h1 class="text-xl font-bold mb-2">Stats for {{ selectedCompany }}</h1>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+         </div>
+        <div class="grid grid-cols-1 gap-4 mt-4 p-4 border rounded-lg shadow-sm  border-gray-700 bg-gray-800 text-white">
+            <!-- Card 2 -->
+            <div>
+                <h3 class="text-xl font-bold mb-2">Total Plays Per Headset</h3>
+                <canvas id="headsetBarChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var headsetData = {{ visitsPerHeadset|json_encode|raw }};
+
+    // Convert object to array and sort by headset ID
+    var sortedData = Object.entries(headsetData).sort(function(a, b) {
+        return parseInt(a[0]) - parseInt(b[0]);
+    });
+
+    var labels = [];
+    var dataPoints = [];
+
+    sortedData.forEach(function(item) {
+        labels.push(item[1].title); // Headset title
+        dataPoints.push(item[1].count); // Visit count
+    });
+
+    var ctx = document.getElementById('headsetBarChart').getContext('2d');
+
+    new Chart(ctx, {
+        type: 'bar',  // Standard bar chart
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Total Visits',
+                data: dataPoints,
+                backgroundColor: '#d97706',
+                borderColor: '#fbbf24',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            },
+            legend: {
+                display: true
+            }
+        }
+    });
+});
+
+</script>
+
+{% endblock %}
+
+
+
+

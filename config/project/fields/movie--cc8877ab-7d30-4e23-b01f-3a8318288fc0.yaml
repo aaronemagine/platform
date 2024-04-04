@@ -1,0 +1,35 @@
+columnSuffix: zmwphfkw
+contentColumnType: string
+fieldGroup: d4460fc8-b976-4652-92d2-7d820d7502ef # Statistics
+handle: movie
+instructions: null
+name: 'Movie Name'
+searchable: false
+settings:
+  allowSelfRelations: false
+  branchLimit: null
+  localizeRelations: false
+  maintainHierarchy: false
+  maxRelations: 1
+  minRelations: 1
+  selectionCondition:
+    __assoc__:
+      -
+        - elementType
+        - craft\elements\Entry
+      -
+        - fieldContext
+        - global
+      -
+        - class
+        - craft\elements\conditions\entries\EntryCondition
+  selectionLabel: null
+  showSiteMenu: true
+  sources:
+    - 'section:b3e8c798-1f09-4ca2-ac30-695d0273d094' # Movies
+  targetSiteId: null
+  validateRelatedElements: false
+  viewMode: null
+translationKeyFormat: null
+translationMethod: site
+type: craft\fields\Entries

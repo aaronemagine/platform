@@ -1,0 +1,14 @@
+description: 'Clients to the analytics system'
+handle: Clients
+name: Clients
+permissions:
+  - 'createentries:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'createentries:cb843ec5-3aaa-44ea-94cf-f99f4023642f' # Statistics
+  - 'createentries:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
+  - 'deleteentries:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'saveentries:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'saveentries:cb843ec5-3aaa-44ea-94cf-f99f4023642f' # Statistics
+  - 'saveentries:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
+  - 'viewentries:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'viewentries:cb843ec5-3aaa-44ea-94cf-f99f4023642f' # Statistics
+  - 'viewentries:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues

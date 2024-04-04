@@ -1,0 +1,24 @@
+
+
+{% extends 'includes/main.twig' %}
+
+{% block content %}
+
+{% if not currentUser %}
+    {% redirect 'index' %}
+{% endif %}
+
+
+<div class="flex">
+    {% include 'includes/sidebar.twig' %}
+
+    <!-- Main Content Area -->
+    <main class="flex-1 bg-gray-900 p-6">
+        
+
+        
+    </main>
+    
+</div>
+
+{% endblock %}
