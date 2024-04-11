@@ -37,10 +37,27 @@
 {% set weekNavUrls = craft.emstats.getWeekNavigationUrls(currentDateParam) %}
 {% set weeklyStats = craft.emstats.getWeeklyStats(currentDateParam, selectedUserId) %}
 
+{% set lowercaseWeeklyStats = {} %}
+{% for time, stats in weeklyStats %}
+  {% set lowerStats = {} %}
+  {% for lang, count in stats %}
+    {% set lowerStats = lowerStats|merge({ (lang|lower): count }) %}
+  {% endfor %}
+  {% set lowercaseWeeklyStats = lowercaseWeeklyStats|merge({ (time): lowerStats }) %}
+{% endfor %}
+
 {% set monthParam = craft.app.request.getParam('month') %}
 {% set monthNavUrls = craft.emstats.getMonthNavigationUrls(monthParam) %}
 {% set monthlyStats = craft.emstats.calculateMonthlyStats(monthParam, selectedUserId) %}
 
+{% set lowercaseMonthlyStats = {} %}
+{% for time, stats in monthlyStats %}
+  {% set lowerStats = {} %}
+  {% for lang, count in stats %}
+    {% set lowerStats = lowerStats|merge({ (lang|lower): count }) %}
+  {% endfor %}
+  {% set lowercaseMonthlyStats = lowercaseMonthlyStats|merge({ (time): lowerStats }) %}
+{% endfor %}
 
 {% set dayParam = craft.app.request.getParam('day') %}
 {% set dayNavUrls = craft.emstats.getDayNavigationUrls(dayParam) %}
@@ -302,7 +319,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // this is the visits per day line and bar chart
-    const weeklyStats = JSON.parse('{{ weeklyStats|json_encode|raw }}');
+    const weeklyStats = JSON.parse('{{ lowercaseWeeklyStats|json_encode|raw }}');
     const totalVisitsPerDay = weeklyStats.totalVisitsPerDay;
     const dayLabels = Object.keys(totalVisitsPerDay);
 
@@ -383,7 +400,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    const monthlyStatsData = JSON.parse('{{ monthlyStats|json_encode|raw }}');
+    const monthlyStatsData = JSON.parse('{{ lowercaseMonthlyStats|json_encode|raw }}');
     const totalVisitsPerWeek = monthlyStatsData.totalVisitsPerWeek;
     const weekLabels = monthlyStatsData.weekLabels;
 
