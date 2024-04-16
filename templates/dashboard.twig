@@ -46,6 +46,11 @@
   {% set lowercaseWeeklyStats = lowercaseWeeklyStats|merge({ (time): lowerStats }) %}
 {% endfor %}
 
+{% set totalWeeklyVisits = 0 %}
+{% for day, visits in weeklyStats.totalVisitsPerDay %}
+  {% set totalWeeklyVisits = totalWeeklyVisits + visits %}
+{% endfor %}
+
 {% set monthParam = craft.app.request.getParam('month') %}
 {% set monthNavUrls = craft.emstats.getMonthNavigationUrls(monthParam) %}
 {% set monthlyStats = craft.emstats.calculateMonthlyStats(monthParam, selectedUserId) %}
@@ -58,6 +63,12 @@
   {% endfor %}
   {% set lowercaseMonthlyStats = lowercaseMonthlyStats|merge({ (time): lowerStats }) %}
 {% endfor %}
+
+{% set totalMonthlyVisits = 0 %}
+{% for week, visits in monthlyStats.totalVisitsPerWeek %}
+  {% set totalMonthlyVisits = totalMonthlyVisits + visits %}
+{% endfor %}
+
 
 {% set dayParam = craft.app.request.getParam('day') %}
 {% set dayNavUrls = craft.emstats.getDayNavigationUrls(dayParam) %}
@@ -72,6 +83,14 @@
     {% set lowerStats = lowerStats|merge({ (lang|lower): count }) %}
   {% endfor %}
   {% set lowercaseDailyStats = lowercaseDailyStats|merge({ (time): lowerStats }) %}
+{% endfor %}
+
+{% set totalDailyVisits = 0 %}
+
+{% for time, languages in dailyStats %}
+  {% for language, count in languages %}
+    {% set totalDailyVisits = totalDailyVisits + count %}
+  {% endfor %}
 {% endfor %}
 
 <div class="flex min-h-screen">
@@ -159,7 +178,7 @@
             <div class="p-4">
                 <!-- Tab Headers -->
                 <div class="flex border-b">
-                    <button class="tab-button py-2 px-4 text-l font-medium text-gray-600 border-b-2 focus:outline-none" data-target="fullGraph">Plays This Week</button>
+                    <button class="tab-button py-2 px-4 text-l font-medium text-gray-600 border-b-2 focus:outline-none" data-target="fullGraph">Plays This Week ({{ totalWeeklyVisits }})</button>
                     <button class="tab-button py-2 px-4 text-l font-medium text-gray-600 border-b-2 focus:outline-none" data-target="byLanguages">By Language</button>
                 </div>
 
@@ -199,7 +218,7 @@
             <div class="p-4">
                 <!-- Tab Headers -->
                 <div class="flex border-b">
-                    <button class="month-tab-button py-2 px-4 text-l font-medium text-gray-600 border-b-2 focus:outline-none" data-target="visitsThisMonth">Plays This Month</button>
+                    <button class="month-tab-button py-2 px-4 text-l font-medium text-gray-600 border-b-2 focus:outline-none" data-target="visitsThisMonth">Plays This Month ({{ totalMonthlyVisits }})</button>
                     <button class="month-tab-button py-2 px-4 text-l font-medium text-gray-600 border-b-2 focus:outline-none" data-target="monthByLanguage">By Language</button>
                 </div>
 
@@ -250,7 +269,7 @@
                 {% set currentDayParam = craft.app.request.getParam('day') %}
                 {% set displayDay = currentDayParam ? currentDayParam|date('l, jS F, Y') : 'Today' %}
 
-                <h3 class="text-xl font-bold mb-2">Plays Per Hour ({{ displayDay }})</h3>
+                <h3 class="text-xl font-bold mb-2">Plays Per Hour: {{ displayDay }} - ({{ totalDailyVisits }})</h3>
                 <canvas id="barDayChart"></canvas>
 
                 <div class="flex justify-between pt-1">
@@ -400,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    const monthlyStatsData = JSON.parse('{{ lowercaseMonthlyStats|json_encode|raw }}');
+    const monthlyStatsData = JSON.parse('{{ monthlyStats|json_encode|raw }}');
     const totalVisitsPerWeek = monthlyStatsData.totalVisitsPerWeek;
     const weekLabels = monthlyStatsData.weekLabels;
 
@@ -433,7 +452,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     const weeklyLanguageVisits = monthlyStatsData.weeklyLanguageVisits;
-
 
     // Initialize datasets array for Bar Chart
     let barChartDatasetsMonth = [];
