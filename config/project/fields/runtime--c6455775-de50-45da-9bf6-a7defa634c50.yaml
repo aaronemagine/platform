@@ -1,0 +1,59 @@
+columnSuffix: ummvwsjt
+contentColumnType: text
+fieldGroup: 70c63edf-2fc7-463d-bef9-779cc51b7d25 # Common
+handle: runtime
+instructions: null
+name: Runtime
+searchable: false
+settings:
+  addRowLabel: 'Add a row'
+  columnType: text
+  columns:
+    __assoc__:
+      -
+        - col1
+        -
+          __assoc__:
+            -
+              - heading
+              - Minutes
+            -
+              - handle
+              - minutes
+            -
+              - width
+              - ''
+            -
+              - type
+              - number
+      -
+        - col2
+        -
+          __assoc__:
+            -
+              - heading
+              - seconds
+            -
+              - handle
+              - seconds
+            -
+              - width
+              - ''
+            -
+              - type
+              - number
+  defaults:
+    -
+      __assoc__:
+        -
+          - col1
+          - '0'
+        -
+          - col2
+          - '0'
+  maxRows: 1
+  minRows: 1
+  staticRows: false
+translationKeyFormat: null
+translationMethod: none
+type: craft\fields\Table

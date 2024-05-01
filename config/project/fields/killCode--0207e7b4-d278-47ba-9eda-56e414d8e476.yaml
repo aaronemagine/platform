@@ -1,0 +1,20 @@
+columnSuffix: mxaepfpm
+contentColumnType: smallint(1)
+fieldGroup: 6107f7f5-b967-4eff-900d-72acac322b28 # Users
+handle: killCode
+instructions: null
+name: 'Kill code'
+searchable: false
+settings:
+  decimals: 0
+  defaultValue: 0
+  max: 2
+  min: 0
+  prefix: null
+  previewCurrency: null
+  previewFormat: decimal
+  size: 1
+  suffix: null
+translationKeyFormat: null
+translationMethod: none
+type: craft\fields\Number

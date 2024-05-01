@@ -8,8 +8,12 @@
     {% redirect 'index' %}
 {% endif %}
 
+{% set user = craft.app.user.identity %}
 {% set venueId = craft.app.request.getQueryParam('id') %}
 {% set venue = venueId ? craft.entries.section('venues').id(venueId).one() : null %}
+
+{% set selectedMovies = venue.movies.all() %}
+
 
 <div class="flex">
     {% include 'includes/sidebar.twig' %}
@@ -45,30 +49,48 @@
                            required>
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-white text-sm font-bold mb-2" for="venueTicketPrice">
-                        Ticket Price
+                <div class="mb-6">
+                    <label class="block text-white text-sm font-bold mb-2" for="adminRecordData">
+                        Record Data?
                     </label>
-                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                           id="venueTicketPrice" 
-                           type="number" 
-                           step="0.01" 
-                           name="fields[venueTicketPrice]" 
-                           value="{{ venue ? venue.venueTicketPrice : '' }}" 
-                           >
+                   <input type="hidden" name="fields[adminRecordData]" value="0" >
+                   <input id="adminRecordData" 
+                   type="checkbox" 
+                   name="fields[adminRecordData]"
+                   value="1" 
+                   {% if venue and venue.adminRecordData %}checked{% endif %}>
                 </div>
 
-                <div class="mb-6">
-                    <label class="block text-white text-sm font-bold mb-2" for="venueCurrencyType">
-                        Currency Type
+                <div class="mb-4">
+                    <label class="block text-white text-sm font-bold mb-2" for="venueTicketPrice">
+                        Require Internet?
                     </label>
-                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                           id="venueCurrencyType" 
-                           type="text" 
-                           name="fields[venueCurrencyType]" 
-                           value="{{ venue ? venue.venueCurrencyType : '' }}" 
-                           >
+                    <input type="hidden" name="fields[adminRequireInternet]" value="0">
+                    <input id="adminRequireInternet" 
+                   type="checkbox" 
+                   name="fields[adminRequireInternet]"
+                   value="1" 
+                   {% if venue and venue.adminRequireInternet %}checked{% endif %}>
                 </div>
+
+                  <div class="mb-4">
+                    <label for="movieDropdown" class="block text-white text-sm font-bold mb-2">Choose Movies:</label>
+                    <select id="movieDropdown" name="fields[movies][]" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" multiple>
+                        <option value="">Select Movies</option>
+                        {% set movies = craft.entries.section('movies').authorId(user.id).all() %}
+                        {% for movie in movies %}
+                            <option value="{{ movie.id }}"
+                                    {% if movie.id in selectedMovies|map(movie => movie.id) %}selected{% endif %}>
+                                {{ movie.title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+
+
+
+                  </div>
+                
 
                 <div class="flex items-center justify-between">
                     <button class="bg-teal-700 hover:bg-teal-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
@@ -83,5 +105,26 @@
     </main>
     
 </div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var elem = document.getElementById('movieDropdown');
+    var choices = new Choices(elem, {
+        removeItemButton: true,
+        maxItemCount: -1,  // No limit on number of items you can select
+        searchEnabled: true,
+        searchChoices: true,
+        searchResultLimit: 5,
+        renderChoiceLimit: -1, // Render all choices in the dropdown
+        placeholderValue: 'Select Movies',
+        placeholder: true,  // Adds placeholder text when input is empty
+    });
+});
+</script>
+
+
 
 {% endblock %}

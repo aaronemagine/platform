@@ -1,0 +1,19 @@
+columnSuffix: gtssgjsc
+contentColumnType: string(8)
+fieldGroup: 31ed83ba-e7df-4d8f-9233-992355d54e5c # Language
+handle: languageCode
+instructions: null
+name: 'language code'
+searchable: false
+settings:
+  byteLimit: null
+  charLimit: 2
+  code: false
+  columnType: null
+  initialRows: 4
+  multiline: false
+  placeholder: null
+  uiMode: normal
+translationKeyFormat: null
+translationMethod: none
+type: craft\fields\PlainText

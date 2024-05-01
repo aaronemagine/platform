@@ -1,27 +1,45 @@
-dateModified: 1699807860
+dateModified: 1714582620
 email:
   fromEmail: hello@emagine.ie
   fromName: 'Emagine VR Analytics'
   transportType: craft\mail\transportadapters\Sendmail
 meta:
   __names__:
+    1a26c486-8723-402a-a398-68b766f2d163: Default # Default
+    2c4b384a-0d46-45e9-9ec8-9c0f5a2e223b: 'User need internet' # User need internet
+    2c314921-5384-4119-8bcd-0a351e9efcd4: 'Admin Record Data' # Admin Record Data
+    2cd0fa02-3f11-4990-9c62-72f682967f66: 'Admin Require Internet' # Admin Require Internet
+    3aba213d-a73b-437b-a5ef-4f53042fb3e0: 'User record stats' # User record stats
+    3d0f0616-8e42-42a9-a19f-8738798cff7e: 'Familiar ID' # Familiar ID
     4e940878-c1ee-4493-ba07-9714a5292f0b: 'Stats Schema' # Stats Schema
+    5eb9494d-e974-4bd7-9907-c2f0ff32dc4e: 'Multi file' # Multi file
     6af92e13-3817-4619-a65c-3522d4d1fc67: Venue # Venue
     6e395cf4-c9ab-4960-8c68-62b6bbcf4714: Default # Default
+    9dd0fcef-7fc7-4022-8895-dd131c6a9e34: 'Is mono' # Is mono
     17e706db-ccd3-4eab-9d3a-e8e5fed9d10a: Default # Default
+    25e903a3-f98e-43b0-badc-fe4a7b8f1b27: 'Headset Unique ID' # Headset Unique ID
+    31ab9b3c-3af3-407e-8197-ac288d179eab: Movies # Movies
+    31ed83ba-e7df-4d8f-9233-992355d54e5c: Language # Language
     32c28836-80b3-4da9-a427-6d42b223613b: Clients # Clients
+    54ab8604-2b9e-4eb6-9cae-b093124b0e66: Mode # Mode
     70c63edf-2fc7-463d-bef9-779cc51b7d25: Common # Common
     73ccaa0c-844d-46d0-8b58-e33c1baaa8f2: 'Venue Currency Type' # Venue Currency Type
+    0207e7b4-d278-47ba-9eda-56e414d8e476: 'Kill code' # Kill code
     312b4f06-f575-487d-8777-e646ddb19ba6: 'Venue Ticket Price' # Venue Ticket Price
     349ff4ce-c3d6-401e-a73d-26ef36146dba: 'Company Name' # Company Name
+    394fd145-7cff-4ee6-be0a-bf15e22ffbb5: Languages # Languages
+    738d7c8a-3444-45a3-b76c-228216046660: Tablet # Tablet
+    5778bcdf-1965-4d5d-9dfe-4f703a474aae: Movies # Movies
     6107f7f5-b967-4eff-900d-72acac322b28: Users # Users
     38875b9f-df2c-41e6-a1a2-e9d4ed370735: Headsets # Headsets
     0084065a-21dc-4833-9064-d97f4e1c9bca: 'Venue Opening Time' # Venue Opening Time
     3226293d-1172-4808-9dfa-adbbb8120257: 'Emagine VR Analytics' # Emagine VR Analytics
     a7b7e1ba-7fb3-4258-8a31-c45adeaf82b8: Default # Default
     a5255343-5341-4742-9fd7-dc1f26af404a: Admin # Admin
+    aed2ee8a-2dee-4ab3-901a-1879f256c4eb: Channels # Channels
     b3e8c798-1f09-4ca2-ac30-695d0273d094: Movies # Movies
     b748cdca-ffaa-490f-98b0-5fa1c1e70095: 'Company Logo' # Company Logo
+    c6455775-de50-45da-9bf6-a7defa634c50: Runtime # Runtime
     cb843ec5-3aaa-44ea-94cf-f99f4023642f: Statistics # Statistics
     cc7c385a-fa47-48b0-8edb-006e60e4b8f1: 'Venue Closing Time' # Venue Closing Time
     cc8877ab-7d30-4e23-b01f-3a8318288fc0: 'Movie Name' # Movie Name
@@ -30,6 +48,9 @@ meta:
     d55f6463-5f76-4782-9af7-78a88483b0f0: Headset # Headset
     d4460fc8-b976-4652-92d2-7d820d7502ef: Statistics # Statistics
     df793da0-9723-422b-a370-2e9c303381d0: Default # Default
+    e57d07b6-2e83-4220-9f88-22aaf1cf9ad0: Default # Default
+    eb0db3a1-ef42-4db3-9257-bc4574b57570: headset # headset
+    eee871b4-91d9-486f-909f-65a81d67d9e5: 'language code' # language code
     f83d583c-7b6a-4dc7-8d00-7bdd51363137: 'Visit Language' # Visit Language
     f9060c98-f56d-4cca-b4d5-de78d810e775: 'Visit Start' # Visit Start
     f957802c-8f19-44d3-a30a-668d452862ac: 'Emagine VR Analytics' # Emagine VR Analytics
@@ -39,22 +60,6 @@ plugins:
     edition: standard
     enabled: true
     schemaVersion: 1.0.0
-    settings:
-      languageMap:
-        __assoc__:
-          -
-            - en
-            -
-              __assoc__:
-                -
-                  - name
-                  - English
-                -
-                  - color
-                  - bg-amber-500
-                -
-                  - hex
-                  - '#f59e0b'
   _venue:
     edition: standard
     enabled: false

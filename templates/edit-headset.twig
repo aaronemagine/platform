@@ -29,6 +29,9 @@
                 <input type="hidden" name="action" value="entries/save-entry">
                 {{ redirectInput('headsets') }}
 
+                <input type="hidden" name="CRAFT_CSRF_TOKEN" value="{{ craft.app.request.csrfToken }}">
+
+
     
                 {# If there's a headset, include its ID #}
                 {% if headset %}
@@ -49,11 +52,35 @@
                            required>
                 </div>
 
+                <div class="mb-6">
+                    <label class="block text-white text-sm font-bold mb-2" for="userNeedInternet">
+                        User Needs Internet?
+                    </label>
+                   <input type="hidden" name="fields[userNeedInternet]" value="0" >
+                   <input id="userNeedInternet" 
+                   type="checkbox" 
+                   name="fields[userNeedInternet]"
+                   value="1" 
+                   {% if headset and headset.userNeedInternet %}checked{% endif %}>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-white text-sm font-bold mb-2" for="userRecordStats">
+                        Record Stats?
+                    </label>
+                    <input type="hidden" name="fields[userRecordStats]" value="0">
+                    <input id="userRecordStats" 
+                   type="checkbox" 
+                   name="fields[userRecordStats]"
+                   value="1" 
+                   {% if headset and headset.userRecordStats %}checked{% endif %}>
+                </div>
+
                 <div class="mb-4">
                     <label class="block text-white text-sm font-bold mb-2" for="venue">
                         Venue
                     </label>
-                    <select id="fields[venue][]" name="fields[venue][]" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <select id="fields[venue][]" name="fields[venue][]" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                         <option value="">Select a Venue</option>
                         {% set userVenues = craft.entries.section('venues').authorId(currentUser.id).all() %}
                         {% set currentVenueId = headset is not null and headset.venue.one() ? headset.venue.one().id : null %}
@@ -63,6 +90,31 @@
                             </option>
                         {% endfor %}
                     </select>
+
+                </div>
+
+                 <div class="mb-4">
+                    <label class="block text-white text-sm font-bold mb-2" for="familiarId">
+                        Familiar ID
+                    </label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                           id="familiarId" 
+                           type="text" 
+                           name="fields[familiarId]" 
+                           value="{{ headset ? headset.familiarId : '' }}" 
+                           required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-white text-sm font-bold mb-2" for="uuid">
+                        UUID
+                    </label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                           id="uuid" 
+                           type="text" 
+                           name="fields[uuid]" 
+                           value="{{ headset ? headset.uuid : '' }}" 
+                           >
                 </div>
 
                 <div class="flex items-center justify-between">
@@ -78,5 +130,7 @@
     </main>
     
 </div>
+
+
 
 {% endblock %}

@@ -1,0 +1,24 @@
+defaultPlacement: end
+enableVersioning: true
+handle: languages
+name: Languages
+previewTargets:
+  -
+    __assoc__:
+      -
+        - label
+        - 'Primary entry page'
+      -
+        - urlFormat
+        - '{url}'
+      -
+        - refresh
+        - '1'
+propagationMethod: all
+siteSettings:
+  f957802c-8f19-44d3-a30a-668d452862ac: # Emagine VR Analytics
+    enabledByDefault: true
+    hasUrls: true
+    template: languages/_entry
+    uriFormat: 'languages/{slug}'
+type: channel
