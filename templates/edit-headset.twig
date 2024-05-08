@@ -11,6 +11,7 @@
 {% set headsetId = craft.app.request.getQueryParam('id') %}
 {% set headset = headsetId ? craft.entries.section('headsets').id(headsetId).one() : null %}
 
+
 <div class="flex">
     {% include 'includes/sidebar.twig' %}
 
@@ -19,15 +20,21 @@
             <div class="w-4/4 border rounded-lg shadow 2xl:col-span-2 border-gray-700 sm:p-6 bg-gray-800 mt-4">
         <div class="container mx-auto mt-10">
 
-            {% for message in craft.app.session.getFlash('error', [], true) %}
-                <p class="error">{{ message }}</p>
-            {% endfor %}
 
-            <form method="post" class="bg-gray-700 shadow-md rounded px-8 pt-6 pb-8 mb-4">
+
+            {% if craft.app.session.getFlash('error') %}
+                <div style="color: red;">
+                    <p class="error">{{ craft.app.session.getFlash('error') }}</p>
+                </div>
+            {% endif %}
+
+            <form method="post" id="headsetForm" class="bg-gray-700 shadow-md rounded px-8 pt-6 pb-8 mb-4">
             
                 {{ csrfInput() }}
                 <input type="hidden" name="action" value="entries/save-entry">
                 {{ redirectInput('headsets') }}
+                <input type="hidden" name="successFlash" value="Headset submitted successfully">
+
 
                 <input type="hidden" name="CRAFT_CSRF_TOKEN" value="{{ craft.app.request.csrfToken }}">
 
@@ -68,7 +75,7 @@
                     <label class="block text-white text-sm font-bold mb-2" for="userRecordStats">
                         Record Stats?
                     </label>
-                    <input type="hidden" name="fields[userRecordStats]" value="0">
+                    <input type="hidden" name="fields[userRecordStats]" value="0" >
                     <input id="userRecordStats" 
                    type="checkbox" 
                    name="fields[userRecordStats]"
@@ -76,12 +83,12 @@
                    {% if headset and headset.userRecordStats %}checked{% endif %}>
                 </div>
 
+
                 <div class="mb-4">
                     <label class="block text-white text-sm font-bold mb-2" for="venue">
                         Venue
                     </label>
                     <select id="fields[venue][]" name="fields[venue][]" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                        <option value="">Select a Venue</option>
                         {% set userVenues = craft.entries.section('venues').authorId(currentUser.id).all() %}
                         {% set currentVenueId = headset is not null and headset.venue.one() ? headset.venue.one().id : null %}
                         {% for venue in userVenues %}
@@ -99,7 +106,7 @@
                     </label>
                     <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
                            id="familiarId" 
-                           type="text" 
+                           type="number" 
                            name="fields[familiarId]" 
                            value="{{ headset ? headset.familiarId : '' }}" 
                            required>
@@ -111,10 +118,12 @@
                     </label>
                     <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
                            id="uuid" 
-                           type="text" 
+                           type="number" 
                            name="fields[uuid]" 
                            value="{{ headset ? headset.uuid : '' }}" 
-                           >
+                           min="100000"
+                           max="999999"
+                           required>
                 </div>
 
                 <div class="flex items-center justify-between">
@@ -131,6 +140,30 @@
     
 </div>
 
+<script>
 
+function validateForm() {
+    var uuid = document.getElementById('uuid').value;
+    if (uuid.length !== 6 || isNaN(uuid)) {
+        alert('UUID must be a 6-digit number.');
+        return false;
+    }
+    return true;
+}
+
+document.getElementById('headsetForm').addEventListener('submit', function(event) {
+    var select = document.getElementById('fields[venue][]');
+    var selected = Array.from(select.options).some(option => option.selected && option.value);
+    if (!selected) {
+        event.preventDefault(); // Stop form submission
+        var errorDiv = document.getElementById('errorDiv');
+        errorDiv.textContent = 'Please select at least one venue.';
+        errorDiv.style.color = 'red';
+        errorDiv.style.display = 'block';
+        select.focus(); // Focus on the select element
+    }
+});
+
+</script>
 
 {% endblock %}

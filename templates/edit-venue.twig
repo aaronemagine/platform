@@ -12,7 +12,14 @@
 {% set venueId = craft.app.request.getQueryParam('id') %}
 {% set venue = venueId ? craft.entries.section('venues').id(venueId).one() : null %}
 
-{% set selectedMovies = venue.movies.all() %}
+
+{% if venue is not null %}
+    {% set selectedMovies = venue.movies.all() %}
+{% else %}
+    {% set selectedMovies = [] %}
+{% endif %}
+
+{% set userMovies = craft.entries.section('movies').authorId(currentUser.id).all() %}
 
 
 <div class="flex">
@@ -23,11 +30,24 @@
             <div class="w-4/4 border rounded-lg shadow 2xl:col-span-2 border-gray-700 sm:p-6 bg-gray-800 mt-4">
         <div class="container mx-auto mt-10">
 
-            <form method="post" class="bg-gray-700 shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <div id="errorDiv" style="display: none;">
+
+            </div>
+            {% if craft.app.session.getFlash('error') %}
+                <div style="color: red;">
+                    {{ craft.app.session.getFlash('error') }}
+                </div>
+            {% endif %}
+
+
+
+            <form method="post" id="venueForm" class="bg-gray-700 shadow-md rounded px-8 pt-6 pb-8 mb-4">
             
                 {{ csrfInput() }}
                 <input type="hidden" name="action" value="entries/save-entry">
                 {{ redirectInput('venues') }}
+
+                <input type="hidden" name="successFlash" value="Headset submitted successfully">
 
     
                 {# If there's a venue, include its ID #}
@@ -49,45 +69,17 @@
                            required>
                 </div>
 
-                <div class="mb-6">
-                    <label class="block text-white text-sm font-bold mb-2" for="adminRecordData">
-                        Record Data?
-                    </label>
-                   <input type="hidden" name="fields[adminRecordData]" value="0" >
-                   <input id="adminRecordData" 
-                   type="checkbox" 
-                   name="fields[adminRecordData]"
-                   value="1" 
-                   {% if venue and venue.adminRecordData %}checked{% endif %}>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-white text-sm font-bold mb-2" for="venueTicketPrice">
-                        Require Internet?
-                    </label>
-                    <input type="hidden" name="fields[adminRequireInternet]" value="0">
-                    <input id="adminRequireInternet" 
-                   type="checkbox" 
-                   name="fields[adminRequireInternet]"
-                   value="1" 
-                   {% if venue and venue.adminRequireInternet %}checked{% endif %}>
-                </div>
-
                   <div class="mb-4">
                     <label for="movieDropdown" class="block text-white text-sm font-bold mb-2">Choose Movies:</label>
                     <select id="movieDropdown" name="fields[movies][]" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" multiple>
-                        <option value="">Select Movies</option>
                         {% set movies = craft.entries.section('movies').authorId(user.id).all() %}
-                        {% for movie in movies %}
-                            <option value="{{ movie.id }}"
-                                    {% if movie.id in selectedMovies|map(movie => movie.id) %}selected{% endif %}>
-                                {{ movie.title }}
-                            </option>
-                        {% endfor %}
+                        {% for movie in userMovies %}
+                                <option value="{{ movie.id }}"
+                                        {% if movie.id in selectedMovies|map(movie => movie.id) %}selected{% endif %}>
+                                    {{ movie.title }}
+                                </option>
+                            {% endfor %}
                     </select>
-
-
-
 
                   </div>
                 
@@ -123,6 +115,20 @@ document.addEventListener('DOMContentLoaded', function () {
         placeholder: true,  // Adds placeholder text when input is empty
     });
 });
+
+document.getElementById('venueForm').addEventListener('submit', function(event) {
+    var select = document.getElementById('movieDropdown');
+    var selected = Array.from(select.options).some(option => option.selected && option.value);
+    if (!selected) {
+        event.preventDefault(); // Stop form submission
+        var errorDiv = document.getElementById('errorDiv');
+        errorDiv.textContent = 'Please select at least one movie.';
+        errorDiv.style.color = 'red';
+        errorDiv.style.display = 'block';
+        select.focus(); // Focus on the select element
+    }
+});
+
 </script>
 
 

@@ -17,6 +17,15 @@
 
     <!-- Main Content Area -->
     <div class="flex-grow w-full bg-grey-500 p-4">
+
+        {% if craft.app.session.getFlash('error')|length == 0 %}
+            <div style="color: green;">{{ craft.app.session.getFlash('notice') }}</div>
+        {% endif %}
+        {% for message in craft.app.session.getFlash('error') %}
+            <div style="color: red;">{{ message }}</div>
+        {% endfor %}
+
+
         <div class="border rounded-lg shadow-lg border-gray-700 bg-gray-800 mt-4 p-6">
             <h1 class="text-xl font-bold text-white mb-2">My Headsets</h1>
                 {% if headsets|length %}
