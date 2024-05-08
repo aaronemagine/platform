@@ -75,14 +75,13 @@
                     <label class="block text-white text-sm font-bold mb-2" for="userRecordStats">
                         Record Stats?
                     </label>
-                    <input type="hidden" name="fields[userRecordStats]" value="0" >
+                  <input type="hidden" name="fields[userRecordStats]" value="0" >
                     <input id="userRecordStats" 
                    type="checkbox" 
                    name="fields[userRecordStats]"
                    value="1" 
-                   {% if headset and headset.userRecordStats %}checked{% endif %}>
+                   {% if headset is null or (headset is not null and headset.userRecordStats) %}checked{% endif %}>
                 </div>
-
 
                 <div class="mb-4">
                     <label class="block text-white text-sm font-bold mb-2" for="venue">
@@ -121,7 +120,6 @@
                            type="number" 
                            name="fields[uuid]" 
                            value="{{ headset ? headset.uuid : '' }}" 
-                           min="100000"
                            max="999999"
                            required>
                 </div>
@@ -144,8 +142,8 @@
 
 function validateForm() {
     var uuid = document.getElementById('uuid').value;
-    if (uuid.length !== 6 || isNaN(uuid)) {
-        alert('UUID must be a 6-digit number.');
+    if (uuid.length > 6 || isNaN(uuid)) {
+        alert('UUID must be a 6-digit number or less.');
         return false;
     }
     return true;

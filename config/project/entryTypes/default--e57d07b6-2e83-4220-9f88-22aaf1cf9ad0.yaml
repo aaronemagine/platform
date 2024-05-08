@@ -32,18 +32,6 @@ fieldLayouts:
             width: 100
           -
             elementCondition: null
-            fieldUid: 2beaf7df-846b-4115-add6-225b5ccb00af
-            instructions: null
-            label: null
-            required: false
-            tip: null
-            type: craft\fieldlayoutelements\CustomField
-            uid: d8380c95-7874-4caf-88da-41b697cb2a13
-            userCondition: null
-            warning: null
-            width: 100
-          -
-            elementCondition: null
             fieldUid: 6af92e13-3817-4619-a65c-3522d4d1fc67 # Venue
             instructions: null
             label: null
@@ -51,6 +39,18 @@ fieldLayouts:
             tip: null
             type: craft\fieldlayoutelements\CustomField
             uid: b03998f2-e20c-4cd6-8258-13e9467f6977
+            userCondition: null
+            warning: null
+            width: 100
+          -
+            elementCondition: null
+            fieldUid: 25e903a3-f98e-43b0-badc-fe4a7b8f1b27 # Headset Unique ID
+            instructions: null
+            label: null
+            required: false
+            tip: null
+            type: craft\fieldlayoutelements\CustomField
+            uid: ad145b7d-74c5-4e1c-ac2a-9579c5784b02
             userCondition: null
             warning: null
             width: 100

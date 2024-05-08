@@ -1,0 +1,147 @@
+
+
+{% extends 'includes/main.twig' %}
+
+{% block content %}
+
+{% if not currentUser %}
+    {% redirect 'index' %}
+{% endif %}
+
+{% set user = craft.app.user.identity %}
+{% set tabletId = craft.app.request.getQueryParam('id') %}
+{% set tablet = tabletId ? craft.entries.section('tablet').id(tabletId).one() : null %}
+
+
+{% if tablet is not null %}
+    {% set selectedVenues = tablet.venue.all() %}
+{% else %}
+    {% set selectedVenues = [] %}
+{% endif %}
+
+{% set userVenues = craft.entries.section('venues').authorId(currentUser.id).all() %}
+
+
+<div class="flex">
+    {% include 'includes/sidebar.twig' %}
+
+    <!-- Main Content Area -->
+    <main class="flex-1 bg-gray-900 p-6">
+            <div class="w-4/4 border rounded-lg shadow 2xl:col-span-2 border-gray-700 sm:p-6 bg-gray-800 mt-4">
+        <div class="container mx-auto mt-10">
+
+            <div id="errorDiv" style="display: none;">
+
+            </div>
+            {% if craft.app.session.getFlash('error') %}
+                <div style="color: red;">
+                    {{ craft.app.session.getFlash('error') }}
+                </div>
+            {% endif %}
+
+
+
+            <form method="post" id="tabletForm" class="bg-gray-700 shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            
+                {{ csrfInput() }}
+                <input type="hidden" name="action" value="entries/save-entry">
+                {{ redirectInput('tablets') }}
+
+                <input type="hidden" name="successFlash" value="Tablet submitted successfully">
+
+    
+                {# If there's a tablet, include its ID #}
+                {% if tablet %}
+                    <input type="hidden" name="entryId" value="{{ tablet.id }}">
+                {% endif %}
+
+                <input type="hidden" name="sectionId" value="6">
+
+                <div class="mb-4">
+                    <label class="block text-white text-sm font-bold mb-2" for="title">
+                        Title
+                    </label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                           id="title" 
+                           type="text" 
+                           name="title" 
+                           value="{{ tablet ? tablet.title : '' }}" 
+                           required>
+                </div>
+
+                  <div class="mb-4">
+                    <label for="venueDropdown" class="block text-white text-sm font-bold mb-2">Choose Venue</label>
+                    <select id="venueDropdown" name="fields[venue][]" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        {% set venues = craft.entries.section('venue').authorId(user.id).all() %}
+                        {% for venue in userVenues %}
+                                <option value="{{ venue.id }}"
+                                        {% if venue.id in selectedVenues|map(movie => venue.id) %}selected{% endif %}>
+                                    {{ venue.title }}
+                                </option>
+                            {% endfor %}
+                    </select>
+
+                  </div>
+
+                  <div class="mb-4">
+                    <label class="block text-white text-sm font-bold mb-2" for="uuid">
+                        UUID
+                    </label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                           id="uuid" 
+                           type="number" 
+                           name="fields[uuid]" 
+                           value="{{ tablet ? tablet.uuid : '' }}" 
+                           max="999999"
+                           required>
+                </div>
+                
+
+                <div class="flex items-center justify-between">
+                    <button class="bg-teal-700 hover:bg-teal-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                       submit
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+        
+    </main>
+    
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
+<script>
+
+function validateForm() {
+    var uuid = document.getElementById('uuid').value;
+    if (uuid.length > 6 || isNaN(uuid)) {
+        alert('UUID must be a 6-digit number or less.');
+        return false;
+    }
+    return true;
+}
+
+document.getElementById('tabletForm').addEventListener('submit', function(event) {
+    var select = document.getElementById('fields[venue][]');
+    var selected = Array.from(select.options).some(option => option.selected && option.value);
+    if (!selected) {
+        event.preventDefault(); // Stop form submission
+        var errorDiv = document.getElementById('errorDiv');
+        errorDiv.textContent = 'Please select at least one venue.';
+        errorDiv.style.color = 'red';
+        errorDiv.style.display = 'block';
+        select.focus(); // Focus on the select element
+    }
+});
+
+</script>
+
+
+
+
+
+{% endblock %}
