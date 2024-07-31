@@ -107,12 +107,12 @@
                 <div class="grid grid-rows-3 gap-4">
                     {% if selectedCompany %}
                         <div class="row-span-1">
-                            <h1 class="text-xl font-bold mb-2">Stats for {{ selectedCompany }}</h1>
+                            <h1 class="text-xl font-bold mb-2">{{ 'Stats for'|t }} {{ selectedCompany }}</h1>
                         </div>
                     {% endif %}
                     {% if totalEntries is defined and selectedCompany %}
                         <div class="row-span-1">
-                            <h2 class="text-l font-bold mb-2">Total Plays: {{ totalEntries }}</h2>
+                            <h2 class="text-l font-bold mb-2">N{{ 'Total visits'|t }}: {{ totalEntries }}</h2>
                         </div>
                     {% endif %}
 
@@ -120,7 +120,7 @@
 
                         {% if totalVisitsPerLanguage is defined and selectedCompany %}
                             <div class="col-span-1">
-                                <h3 class="text-l font-bold mb-2">Plays By Language:</h3>
+                                <h3 class="text-l font-bold mb-2">{{ 'Visits by language'|t }}:</h3>
                                 <ul class="list-disc pl-5">
                                     {% for code, total in totalVisitsPerLanguage %}
                                         {% set languageName = languageMap[code].name ?? code %}
@@ -132,7 +132,7 @@
 
                         {% if totalVisitsPerVenue is defined and selectedCompany %}
                             <div class="col-span-1">
-                                <h3 class="text-l font-bold mb-2">Plays By Venue:</h3>
+                                <h3 class="text-l font-bold mb-2">{{ 'Visits by venue'|t }}:</h3>
                                 <ul class="list-disc pl-5">
                                     {% for venueName, total in totalVisitsPerVenue %}
                                         <li>{{ venueName }}: {{ total }}</li>
@@ -143,7 +143,7 @@
 
                         {% if totalVisitsPerMovie is defined and selectedCompany %}
                             <div class="col-span-1">
-                                <h3 class="text-l font-bold mb-2">Plays By Experience:</h3>
+                                <h3 class="text-l font-bold mb-2">{{ 'Visits by experience'|t }}:</h3>
                                 <ul class="list-disc pl-5">
                                     {% for movieName, total in totalVisitsPerMovie %}
                                         <li>{{ movieName }}: {{ total }}</li>
@@ -178,38 +178,38 @@
             <div class="p-4">
                 <!-- Tab Headers -->
                 <div class="flex border-b">
-                    <button class="tab-button py-2 px-4 text-l font-medium text-gray-600 border-b-2 focus:outline-none" data-target="fullGraph">Plays This Week ({{ totalWeeklyVisits }})</button>
-                    <button class="tab-button py-2 px-4 text-l font-medium text-gray-600 border-b-2 focus:outline-none" data-target="byLanguages">By Language</button>
+                    <button class="tab-button py-2 px-4 text-l font-medium text-gray-600 border-b-2 focus:outline-none" data-target="fullGraph">{{ 'Visits this week'|t }} ({{ totalWeeklyVisits }})</button>
+                    <button class="tab-button py-2 px-4 text-l font-medium text-gray-600 border-b-2 focus:outline-none" data-target="byLanguages">{{ 'By language'|t }}</button>
                 </div>
 
                 <!-- Tab Content -->
                 <div id="fullGraph" class="tab-content p-4 hidden">
                     {% if currentDateParam %}
                         {% set mondayOfWeek = currentDateParam|date('Y-m-d')|date_modify('Monday this week') %}
-                        <h3 class="text-l mb-2">Week Of {{ mondayOfWeek|date('F jS, Y') }}</h3>
+                        <h3 class="text-l mb-2">{{ 'Week of'|t }} {{ mondayOfWeek|date('F jS, Y') }}</h3>
                     {% endif %}
                     <canvas id="visitsThisWeekChart"></canvas> 
                     <div class="flex justify-between pt-1">
                         <a href="{{ weekNavUrls.prevWeekUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            Prev Week
+                            {{ 'Prev week'|t }}
                         </a>
                         <a href="{{ weekNavUrls.nextWeekUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            Next Week
+                            {{ 'Next week'|t }}
                         </a>
                     </div>
                 </div>
                 <div id="byLanguages" class="tab-content p-4 hidden">
                     {% if currentDateParam %}
                         {% set mondayOfWeek = currentDateParam|date('Y-m-d')|date_modify('Monday this week') %}
-                        <h3 class="text-l mb-2">Week Of {{ mondayOfWeek|date('F jS, Y') }}</h3>
+                        <h3 class="text-l mb-2">{{ 'Week of'|t }} {{ mondayOfWeek|date('F jS, Y') }}</h3>
                     {% endif %}
                     <canvas id="visitsThisWeekLanguageChart"></canvas>
                     <div class="flex justify-between pt-1">
                         <a href="{{ weekNavUrls.prevWeekUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            Prev Week
+                            {{ 'Prev week'|t }}
                         </a>
                         <a href="{{ weekNavUrls.nextWeekUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            Next Week
+                            {{ 'Next week'|t }}
                         </a>
                     </div>
                 </div>
@@ -218,8 +218,8 @@
             <div class="p-4">
                 <!-- Tab Headers -->
                 <div class="flex border-b">
-                    <button class="month-tab-button py-2 px-4 text-l font-medium text-gray-600 border-b-2 focus:outline-none" data-target="visitsThisMonth">Plays This Month ({{ totalMonthlyVisits }})</button>
-                    <button class="month-tab-button py-2 px-4 text-l font-medium text-gray-600 border-b-2 focus:outline-none" data-target="monthByLanguage">By Language</button>
+                    <button class="month-tab-button py-2 px-4 text-l font-medium text-gray-600 border-b-2 focus:outline-none" data-target="visitsThisMonth">{{ 'Visits this month'|t }} ({{ totalMonthlyVisits }})</button>
+                    <button class="month-tab-button py-2 px-4 text-l font-medium text-gray-600 border-b-2 focus:outline-none" data-target="monthByLanguage">{{ 'By language'|t }}</button>
                 </div>
 
                 <!-- Tab Content -->
@@ -234,10 +234,10 @@
                 
                     <div class="flex justify-between pt-1">
                         <a href="{{ monthNavUrls.prevMonthUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            Prev Month
+                            {{ 'Prev month'|t }}
                         </a>
                         <a href="{{ monthNavUrls.nextMonthUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            Next Month
+                            {{ 'Next month'|t }}
                         </a>
                     </div>
                 </div>
@@ -245,17 +245,17 @@
                     {% if monthParam %}
                         {% set monthDate = monthParam|date('Y-m-d') %}
                         {% set monthName = monthDate|date('F, Y') %}
-                        <h3 class="text-l mb-2">Plays in {{ monthName }}</h3>
+                        <h3 class="text-l mb-2">{{ 'Visits in'|t }} {{ monthName }}</h3>
                     {% endif %}
 
                     <canvas id="visitsByLanguageBarChartMonth"></canvas>
 
                     <div class="flex justify-between pt-1">
                         <a href="{{ monthNavUrls.prevMonthUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            Prev Month
+                            {{ 'Prev month'|t }}
                         </a>
                         <a href="{{ monthNavUrls.nextMonthUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            Next Month
+                            {{ 'Next month'|t }}
                         </a>
                     </div>
                 </div>
@@ -267,14 +267,19 @@
             <!-- Card 2 -->
             <div>
                 {% set currentDayParam = craft.app.request.getParam('day') %}
-                {% set displayDay = currentDayParam ? currentDayParam|date('l, jS F, Y') : 'Today' %}
+      
+                {% if currentDayParam %}
+                    {% set displayDay = currentDayParam|date('l, jS F, Y') %}
+                {% else %}
+                    {% set displayDay = craft.app.language == 'fr' ? 'Aujourd\'hui' : 'Today' %}
+                {% endif %}
 
-                <h3 class="text-xl font-bold mb-2">Plays Per Hour: {{ displayDay }} - ({{ totalDailyVisits }})</h3>
+                <h3 class="text-xl font-bold mb-2">{{ 'Visits per hour'|t }}: {{ displayDay }} - ({{ totalDailyVisits }})</h3>
                 <canvas id="barDayChart"></canvas>
 
                 <div class="flex justify-between pt-1">
-                    <a href="{{ dayNavUrls.prevDayUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">Previous Day</a>
-                    <a href="{{ dayNavUrls.nextDayUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">Next Day</a>
+                    <a href="{{ dayNavUrls.prevDayUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">{{ 'Prev day'|t }}</a>
+                    <a href="{{ dayNavUrls.nextDayUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">{{ 'Next day'|t }}</a>
                 </div>
             </div>
         </div>
@@ -340,6 +345,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // this is the visits per day line and bar chart
     const weeklyStats = JSON.parse('{{ lowercaseWeeklyStats|json_encode|raw }}');
     const totalVisitsPerDay = weeklyStats.totalVisitsPerDay;
+
     const dayLabels = Object.keys(totalVisitsPerDay);
 
     // Line Chart Dataset

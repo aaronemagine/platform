@@ -47,7 +47,7 @@
                 <input type="hidden" name="action" value="entries/save-entry">
                 {{ redirectInput('venues') }}
 
-                <input type="hidden" name="successFlash" value="Headset submitted successfully">
+                <input type="hidden" name="successFlash" value="Venue submitted successfully">
 
     
                 {# If there's a venue, include its ID #}
@@ -59,7 +59,7 @@
 
                 <div class="mb-4">
                     <label class="block text-white text-sm font-bold mb-2" for="title">
-                        Title
+                        {{ 'Title'|t }}
                     </label>
                     <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
                            id="title" 
@@ -70,7 +70,7 @@
                 </div>
 
                   <div class="mb-4">
-                    <label for="movieDropdown" class="block text-white text-sm font-bold mb-2">Choose Movies:</label>
+                    <label for="movieDropdown" class="block text-white text-sm font-bold mb-2">{{ 'Choose movies'|t }}:</label>
                     <select id="movieDropdown" name="fields[movies][]" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" multiple>
                         {% set movies = craft.entries.section('movies').authorId(user.id).all() %}
                         {% for movie in userMovies %}
@@ -86,7 +86,7 @@
 
                 <div class="flex items-center justify-between">
                     <button class="bg-teal-700 hover:bg-teal-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-                       submit
+                       {{ 'Submit'|t }}
                     </button>
                 </div>
             </form>
@@ -119,10 +119,14 @@ document.addEventListener('DOMContentLoaded', function () {
 document.getElementById('venueForm').addEventListener('submit', function(event) {
     var select = document.getElementById('movieDropdown');
     var selected = Array.from(select.options).some(option => option.selected && option.value);
+
+    const siteLanguage = craft.app.language;
+
     if (!selected) {
         event.preventDefault(); // Stop form submission
         var errorDiv = document.getElementById('errorDiv');
-        errorDiv.textContent = 'Please select at least one movie.';
+        //errorDiv.textContent = 'Please select at least one movie.';
+        errorDiv.textContent = siteLanguage === 'fr' ? 'Veuillez sélectionner au moins un film.' : 'Please select at least one movie.';
         errorDiv.style.color = 'red';
         errorDiv.style.display = 'block';
         select.focus(); // Focus on the select element

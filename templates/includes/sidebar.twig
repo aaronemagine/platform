@@ -7,41 +7,41 @@
 
         {#!-- Statistics Section --#}
         <div class="sm:p-6 bg-gray-900 text-white">
-            <h3 class="text-xl font-bold mb-2">Statistics</h3>
+            <h3 class="text-xl font-bold mb-2">{{ 'Statistics'|t }}</h3>
             <ul>
                 <li>
-                    <a href="dashboard" class="text-gray-200 rounded hover:bg-gray-300">Dashboard</a>
+                    <a href="dashboard" class="text-sm text-gray-200 rounded hover:bg-gray-300">{{ 'Dashboard'|t }}</a>
                 </li>
 {#                 <li>
                     <a href="view-venues" class="text-gray-200 rounded hover:bg-gray-300">Venues</a>
                 </li> #}
                 <li>
-                    <a href="view-headsets" class="text-gray-200 rounded hover:bg-gray-300">Headsets</a>
+                    <a href="view-headsets" class="text-sm text-gray-200 rounded hover:bg-gray-300">{{ 'Headsets'|t }}</a>
                 </li>
             </ul>
         </div>
 
         {#!-- Administration Section --#}
         <div class=" sm:p-6 bg-gray-900 text-white">
-            <h3 class="text-xl font-bold mb-2">Admin</h3>
+            <h3 class="text-xl font-bold mb-2">{{ 'Admin'|t }}</h3>
             <ul>
                 <li>
-                    <a href="/venues" class="text-gray-200 rounded hover:bg-gray-300">Venues</a>
+                    <a href="venues" class="text-sm text-gray-200 rounded hover:bg-gray-300">{{ 'Venues'|t }}</a>
                 </li>
                 <li>
-                    <a href="/headsets" class="text-gray-200 rounded hover:bg-gray-300">Headsets</a>
+                    <a href="headsets" class="text-sm text-gray-200 rounded hover:bg-gray-300">{{ 'Headsets'|t }}</a>
                 </li>
                 <li>
-                    <a href="/tablets" class="text-gray-200 rounded hover:bg-gray-300">Tablets</a>
+                    <a href="/tablets" class="text-sm text-gray-200 rounded hover:bg-gray-300">{{ 'Tablets'|t }}</a>
                 </li>
                 <li>
-                    <a href="/edit-profile" class="text-gray-200 rounded hover:bg-gray-300">Profile</a>
+                    <a href="edit-profile" class="text-sm text-gray-200 rounded hover:bg-gray-300">{{ 'Profile'|t }}</a>
                 </li>
                 <li>
-                    <form method="post" action="" accept-charset="UTF-8" class="inline text-gray-200 rounded hover:bg-gray-300">
+                    <form method="post" action="" accept-charset="UTF-8" class="inline  text-sm text-gray-200 rounded hover:bg-gray-300">
                         {{ csrfInput() }}
                         <input type="hidden" name="action" value="users/logout">
-                        <button type="submit" class="text-white">Logout</button>
+                        <button type="submit" class="text-white">{{ 'Logout'|t }}</button>
                     </form>
                 </li>
             </ul>

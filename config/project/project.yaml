@@ -1,4 +1,4 @@
-dateModified: 1715167289
+dateModified: 1720268054
 email:
   fromEmail: hello@emagine.ie
   fromName: 'Emagine VR Analytics'
@@ -38,6 +38,7 @@ meta:
     a5255343-5341-4742-9fd7-dc1f26af404a: Admin # Admin
     aed2ee8a-2dee-4ab3-901a-1879f256c4eb: Channels # Channels
     b3e8c798-1f09-4ca2-ac30-695d0273d094: Movies # Movies
+    b5c6ac4a-8980-41c0-8f74-f306c556855c: 'Emagine Analytic FR' # Emagine Analytic FR
     b748cdca-ffaa-490f-98b0-5fa1c1e70095: 'Company Logo' # Company Logo
     c6455775-de50-45da-9bf6-a7defa634c50: Runtime # Runtime
     cb843ec5-3aaa-44ea-94cf-f99f4023642f: Statistics # Statistics

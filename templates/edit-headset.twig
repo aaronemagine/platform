@@ -49,7 +49,7 @@
 
                 <div class="mb-4">
                     <label class="block text-white text-sm font-bold mb-2" for="title">
-                        Title
+                        {{'Title'|t }}
                     </label>
                     <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
                            id="title" 
@@ -61,7 +61,7 @@
 
                 <div class="mb-6">
                     <label class="block text-white text-sm font-bold mb-2" for="userNeedInternet">
-                        User Needs Internet?
+                        {{'User needs internet'|t}}?
                     </label>
                    <input type="hidden" name="fields[userNeedInternet]" value="0" >
                    <input id="userNeedInternet" 
@@ -73,7 +73,7 @@
 
                 <div class="mb-4">
                     <label class="block text-white text-sm font-bold mb-2" for="userRecordStats">
-                        Record Stats?
+                        {{'Record stats'|t}}?
                     </label>
                   <input type="hidden" name="fields[userRecordStats]" value="0" >
                     <input id="userRecordStats" 
@@ -85,7 +85,7 @@
 
                 <div class="mb-4">
                     <label class="block text-white text-sm font-bold mb-2" for="venue">
-                        Venue
+                        {{'Venue'|t}}
                     </label>
                     <select id="fields[venue][]" name="fields[venue][]" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                         {% set userVenues = craft.entries.section('venues').authorId(currentUser.id).all() %}
@@ -101,7 +101,7 @@
 
                  <div class="mb-4">
                     <label class="block text-white text-sm font-bold mb-2" for="familiarId">
-                        Familiar ID
+                        {{'Familiar id'|t}}
                     </label>
                     <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
                            id="familiarId" 
@@ -126,7 +126,7 @@
 
                 <div class="flex items-center justify-between">
                     <button class="bg-teal-700 hover:bg-teal-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-                       submit
+                       {{'Submit'|t}}
                     </button>
                 </div>
             </form>
@@ -150,12 +150,17 @@ function validateForm() {
 }
 
 document.getElementById('headsetForm').addEventListener('submit', function(event) {
+
+    const siteLanguage = craft.app.language;
+
     var select = document.getElementById('fields[venue][]');
     var selected = Array.from(select.options).some(option => option.selected && option.value);
     if (!selected) {
         event.preventDefault(); // Stop form submission
         var errorDiv = document.getElementById('errorDiv');
-        errorDiv.textContent = 'Please select at least one venue.';
+        //errorDiv.textContent = 'Please select at least one venue.';
+        errorDiv.textContent = siteLanguage === 'fr' ? 'Veuillez sélectionner au moins un lieu.' : 'Please select at least one venue.';
+
         errorDiv.style.color = 'red';
         errorDiv.style.display = 'block';
         select.focus(); // Focus on the select element

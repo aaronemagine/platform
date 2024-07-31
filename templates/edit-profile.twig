@@ -40,7 +40,7 @@
           {{ redirectInput('welcome') }}
         
         <div class="col-span-1">
-            <label for="full-name" class="block mb-2">Full Name</label>
+            <label for="full-name" class="block mb-2">{{'Full name'|t}}</label>
             {{ input('text', 'fullName', user.fullName, {
                 id: 'full-name',
                 class: 'w-4/5 p-2 border border-gray-300 rounded text-black',
@@ -50,7 +50,7 @@
         </div>
 
         <div class="col-span-1">
-            <label for="companyName" class="block mb-2">Company Name</label>
+            <label for="companyName" class="block mb-2">{{'Company name'|t}}</label>
             {{ input('text', 'companyName', user.companyName, {
                 id: 'companyName',
                 class: 'w-4/5 p-2 border border-gray-300 rounded text-black',
@@ -60,7 +60,7 @@
         </div>
 
         <div class="col-span-1">
-            <label for="username" class="block mb-2">Username</label>
+            <label for="username" class="block mb-2">{{'Username'|t}}</label>
             {{ input('text', 'username', user.username, {
                 id: 'username',
                 class: 'w-4/5 p-2 border border-gray-300 rounded text-black',
@@ -70,7 +70,7 @@
         </div>
 
         <div class="col-span-1">
-            <label for="new-password" class="block mb-2">New Password</label>
+            <label for="new-password" class="block mb-2">{{'New password'|t}}</label>
             {{ input('password', 'newPassword', null, {
                 id: 'new-password',
                 class: 'w-4/5 p-2 border border-gray-300 rounded text-black',
@@ -90,7 +90,7 @@
         </div>
 
         <div class="col-span-1">
-            <label for="current-password" class="block mb-2">Current Password</label>
+            <label for="current-password" class="block mb-2">{{'Password'|t}}</label>
             {{ input('password', 'password', null, {
                 id: 'current-password',
                 class: 'w-4/5 p-2 border border-gray-300 rounded text-black',
@@ -102,7 +102,7 @@
 
         <div class="col-span-2">
             <button class="bg-amber-700 hover:bg-amber-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                Save Profile
+                {{'Save profile'|t}}
             </button>
         </div>
 

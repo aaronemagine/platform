@@ -36,6 +36,7 @@ class StatsService extends Component
             'pt' => ['name' => 'Portuguese', 'color' => 'bg-violet-500', 'hex' => '#8b5cf6'],
             'hr' => ['name' => 'Croatian', 'color' => 'bg-fuchsia-500', 'hex' => '#d946ef'],
             'ba' => ['name' => 'Bosnian', 'color' => 'bg-rose-500', 'hex' => '#f43f5e'],
+            'no' => ['name' => 'Norwegian', 'color' => 'bg-rose-500', 'hex' => '#f43f5e'],
 
         ];
     }
@@ -201,7 +202,16 @@ class StatsService extends Component
                 $currentWeekEnd = $endOfMonth;
             }
 
-            $weekKey = 'Week ' . $week;
+            // Get the current site language
+            $language = Craft::$app->getSites()->getCurrentSite()->language;
+
+            // Set the week key based on the current site language
+            if ($language === 'fr') {
+                $weekKey = 'Semaine ' . $week;
+            } else {
+                $weekKey = 'Week ' . $week;
+            }
+
             $weekLabels[] = $weekKey;
 
             // Query for entries within the week

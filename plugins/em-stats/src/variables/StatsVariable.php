@@ -42,7 +42,16 @@ class StatsVariable
     public function getWeeklyStats($selectedDate = null, $userId = null)
     {
         $selectedDate = Craft::$app->getRequest()->getParam('date');
-        $dayLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+         // Determine the current site language
+        $language = Craft::$app->getSites()->getCurrentSite()->language;
+
+        // Set the day labels based on the current site language
+        if ($language === 'fr') {
+            $dayLabels = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+        } else {
+            $dayLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        }
 
         return $this->_statsService->calculateWeeklyStats($selectedDate, $dayLabels, $userId);
     }

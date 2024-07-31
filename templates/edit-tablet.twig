@@ -59,7 +59,7 @@
 
                 <div class="mb-4">
                     <label class="block text-white text-sm font-bold mb-2" for="title">
-                        Title
+                        {{'Title'|t}}
                     </label>
                     <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
                            id="title" 
@@ -70,7 +70,7 @@
                 </div>
 
                   <div class="mb-4">
-                    <label for="venueDropdown" class="block text-white text-sm font-bold mb-2">Choose Venue</label>
+                    <label for="venueDropdown" class="block text-white text-sm font-bold mb-2">{{'Choose venue'|t}}</label>
                     <select id="venueDropdown" name="fields[venue][]" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         {% set venues = craft.entries.section('venue').authorId(user.id).all() %}
                         {% for venue in userVenues %}
@@ -99,7 +99,7 @@
 
                 <div class="flex items-center justify-between">
                     <button class="bg-teal-700 hover:bg-teal-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-                       submit
+                       {{'Submit'|t}}
                     </button>
                 </div>
             </form>
@@ -116,10 +116,19 @@
 
 <script>
 
+const siteLanguage = craft.app.sites.currentSite.language;
+
 function validateForm() {
     var uuid = document.getElementById('uuid').value;
     if (uuid.length > 6 || isNaN(uuid)) {
-        alert('UUID must be a 6-digit number or less.');
+
+        // Determine the alert message based on the site language
+        const alertMessage = siteLanguage === 'fr' 
+            ? 'L\'UUID doit être un nombre à 6 chiffres ou moins.' 
+            : 'UUID must be a 6-digit number or less.';
+
+        // Show the alert
+        alert(alertMessage);
         return false;
     }
     return true;
@@ -131,7 +140,11 @@ document.getElementById('tabletForm').addEventListener('submit', function(event)
     if (!selected) {
         event.preventDefault(); // Stop form submission
         var errorDiv = document.getElementById('errorDiv');
-        errorDiv.textContent = 'Please select at least one venue.';
+        var errorMessage = siteLanguage === 'fr' 
+                ? 'Veuillez sélectionner au moins un lieu.' 
+                : 'Please select at least one venue.';
+
+        errorDiv.textContent = errorMessage;
         errorDiv.style.color = 'red';
         errorDiv.style.display = 'block';
         select.focus(); // Focus on the select element
