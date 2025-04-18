@@ -9,11 +9,9 @@
 {% endif %}
 
 {% set user = craft.app.user.identity %}
-{% set tablets = craft.entries.section('tablet').authorId(user.id).all() %}
+{% set tablets = craft.entries.section('tablet').siteId(1).authorId(user.id).all() %}
 
 <div class="flex min-h-screen">
-
-    {% include 'includes/sidebar.twig' %}
 
     <!-- Main Content Area -->
     <div class="flex-grow w-full bg-grey-500 p-4">
@@ -62,7 +60,7 @@
                     </table>
                     <p class="mt-10"><a href="{{ url('edit-tablet') }}" class="bg-amber-700 hover:bg-amber-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">{{'Add a new tablet'|t}}</a>.</p>
                 {% else %}
-                    <p class="mt-10 text-white">{{'No headsets found'|t}}.</p><p class="mt-10 text-white"> <a href="{{ url('edit-headset') }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">{{'Add a new tablet'|t}}</a></p>
+                    <p class="mt-10 text-white">{{'No tablets found'|t}}.</p><p class="mt-10 text-white"> <a href="{{ url('edit-headset') }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">{{'Add a new tablet'|t}}</a></p>
                 {% endif %}
             </div>
         </div>

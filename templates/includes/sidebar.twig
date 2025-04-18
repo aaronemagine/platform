@@ -1,23 +1,35 @@
+
+
 <aside class="flex-none w-1/5 p-4 ">
-
-
     <nav class="border rounded-lg border-gray-700 bg-gray-900 text-white sm:p-6 mt-1.5">
 
         <img src="/assets/analytics-logo3.webp" alt="Analytics Logo" class="w-9/10 mx-auto mb-1.5"> 
 
         {#!-- Statistics Section --#}
         <div class="sm:p-6 bg-gray-900 text-white">
-            <h3 class="text-xl font-bold mb-2">{{ 'Statistics'|t }}</h3>
+            <h3 class="text-xl font-bold mb-2">{{ 'Visits'|t }}</h3>
             <ul>
                 <li>
-                    <a href="dashboard" class="text-sm text-gray-200 rounded hover:bg-gray-300">{{ 'Dashboard'|t }}</a>
+                    <a href="dashboard" class="text-sm text-gray-200 rounded hover:bg-gray-300">{{ 'Today'|t }}</a>
+                </li>
+                <li>
+                    <a href="view-weekly" class="text-sm text-gray-200 rounded hover:bg-gray-300">{{ 'By Week'|t }}</a>
+                </li>
+                <li>
+                    <a href="view-monthly" class="text-sm text-gray-200 rounded hover:bg-gray-300">{{ 'By Month'|t }}</a>
+                </li>
+                <li>
+                    <a href="view-languages" class="text-sm text-gray-200 rounded hover:bg-gray-300">{{ 'By Language'|t }}</a>
                 </li>
 {#                 <li>
-                    <a href="view-venues" class="text-gray-200 rounded hover:bg-gray-300">Venues</a>
-                </li> #}
-                <li>
-                    <a href="view-headsets" class="text-sm text-gray-200 rounded hover:bg-gray-300">{{ 'Headsets'|t }}</a>
+                    <a href="view-venues" class="text-gray-200 rounded hover:bg-gray-300">{{ 'By Venue'|t }}</a>
                 </li>
+                <li>
+                    <a href="view-movies" class="text-gray-200 rounded hover:bg-gray-300">{{ 'By Movie'|t }}</a>
+                </li> #}
+      {#           <li>
+                    <a href="view-headsets" class="text-sm text-gray-200 rounded hover:bg-gray-300">{{ 'By Headset'|t }}</a>
+                </li> #}
             </ul>
         </div>
 
@@ -32,7 +44,7 @@
                     <a href="headsets" class="text-sm text-gray-200 rounded hover:bg-gray-300">{{ 'Headsets'|t }}</a>
                 </li>
                 <li>
-                    <a href="/tablets" class="text-sm text-gray-200 rounded hover:bg-gray-300">{{ 'Tablets'|t }}</a>
+                    <a href="tablets" class="text-sm text-gray-200 rounded hover:bg-gray-300">{{ 'Tablets'|t }}</a>
                 </li>
                 <li>
                     <a href="edit-profile" class="text-sm text-gray-200 rounded hover:bg-gray-300">{{ 'Profile'|t }}</a>
@@ -45,6 +57,21 @@
                     </form>
                 </li>
             </ul>
+
+
+            {% set currentUrl = craft.app.request.url %}
+            {% set currentPath = craft.app.request.pathInfo %}
+            {% set queryString = craft.app.request.queryString %}
+
+            <ul class="flex mt-4">
+                <li class="mr-4">
+                    <a href="{{ url('/fr/' ~ currentPath) }}" class="px-4 py-2 bg-amber-700 text-white rounded hover:bg-blue-700">fr</a>
+                </li>
+                <li>
+                    <a href="{{ url('/' ~ currentPath) }}" class="px-4 py-2 bg-amber-700 text-white rounded hover:bg-blue-700">en</a>
+                </li>
+            </ul>
+
         </div>
 
     </nav>

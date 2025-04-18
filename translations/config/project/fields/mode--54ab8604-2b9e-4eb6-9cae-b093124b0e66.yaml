@@ -1,0 +1,35 @@
+columnSuffix: nkfylofw
+contentColumnType: string(6)
+fieldGroup: eb0db3a1-ef42-4db3-9257-bc4574b57570 # headset
+handle: mode
+instructions: null
+name: Mode
+searchable: false
+settings:
+  columnType: null
+  options:
+    -
+      __assoc__:
+        -
+          - label
+          - Tablet
+        -
+          - value
+          - tablet
+        -
+          - default
+          - '1'
+    -
+      __assoc__:
+        -
+          - label
+          - Gaze
+        -
+          - value
+          - gaze
+        -
+          - default
+          - ''
+translationKeyFormat: null
+translationMethod: none
+type: craft\fields\Dropdown

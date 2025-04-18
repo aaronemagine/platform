@@ -1,0 +1,215 @@
+{% cache %}
+{% extends 'includes/main.twig' %}
+{% endcache %}
+
+{% block content %}
+
+{% if not currentUser %}
+    {% redirect 'index' %}
+{% endif %}
+
+{% set selectedUserId = currentUser.id %}
+
+
+{% if selectedUserId %}
+
+    {% set weeklyStats = craft.emstats.getWeeklyStats(craft.app.request.getParam('date'), selectedUserId) %}
+    {% set weekNavUrls = craft.emstats.getWeekNavigationUrls(craft.app.request.getParam('date')) %}
+
+    {% set lowercaseWeeklyStats = {} %}
+    {% if weeklyStats is defined %}
+        {% for time, stats in weeklyStats %}
+            {% set lowerStats = {} %}
+            {% for lang, count in stats %}
+                {% set lowerStats = lowerStats|merge({ (lang|lower): count }) %}
+            {% endfor %}
+            {% set lowercaseWeeklyStats = lowercaseWeeklyStats|merge({ (time): lowerStats }) %}
+        {% endfor %}
+    {% endif %}
+
+    {% set totalWeeklyVisits = 0 %}
+    {% if weeklyStats.totalVisitsPerDay is defined %}
+        {% for day, visits in weeklyStats.totalVisitsPerDay %}
+            {% set totalWeeklyVisits = totalWeeklyVisits + visits %}
+        {% endfor %}
+    {% endif %}
+
+{% endif %}
+
+{% set languageMap = craft.emstats.getLanguageMap %}
+{% set languages = languageMap|keys %}
+
+<div class="flex min-h-screen">
+
+    <div class="flex-grow w-full bg-grey-500 p-4">
+        <div class="row-span-1">
+            {% if craft.app.request.getParam('date') %}
+                {% set mondayOfWeek = craft.app.request.getParam('date')|date('Y-m-d')|date_modify('Monday this week') %}
+                <h1 class="text-xl font-bold mb-2 text-white">{{ 'Week of'|t }} {{ mondayOfWeek|date('F jS, Y') }}</h1>
+            {% else %}
+                <h1 class="text-xl font-bold mb-2 text-white">{{ 'Visits this week'|t }} ({{ now|date('F jS, Y') }})</h1>
+            {% endif %}
+        </div>
+        <div class="grid grid-cols-3 gap-4 mt-4 p-4 border rounded-lg shadow-sm border-gray-700 bg-gray-800 text-white">
+            <div class="col-span-1">
+       
+                <table class="w-full bg-gray-800 border border-gray-700">
+                    <thead>
+                        <tr>
+                            <th class="w-2/3 px-4 py-2 border-b border-gray-700 bg-gray-700 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">{{'Day'|t }}</th>
+                            <th class="w-1/3 px-4 py-2 border-b border-gray-700 bg-gray-700 text-right text-sm font-medium text-gray-300 uppercase tracking-wider">{{'Visits'|t }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for day, visits in weeklyStats.totalVisitsPerDay %}
+                        <tr class="{{ loop.index0 is even ? 'bg-gray-800' : 'bg-gray-700' }}">
+                            <td class="w-2/3 px-4 py-2 border-b border-gray-700 text-sm text-gray-300">{{ day }}</td>
+                            <td class="w-1/3 px-4 py-2 border-b border-gray-700 text-sm text-gray-300 text-right">{{ visits }}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr>
+                            <td class="w-2/3 px-4 py-2 border-b border-gray-700 text-sm text-gray-900 bg-gray-400 ">{{ 'Total visits'|t }}:</td>
+                            <td class="w-1/3 px-4 py-2 border-t text-right border-gray-700 text-sm text-gray-900 bg-gray-400">{{ totalWeeklyVisits }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+    
+            </div>
+            <div class="col-span-2">
+                <div class="p-4 h-full">
+                    <canvas id="visitsThisWeekChart"></canvas>
+                </div>    
+            </div>
+        </div>
+        <div class="flex justify-between pt-4">
+            <a href="{{ weekNavUrls.prevWeekUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">{{ 'Prev week'|t }}</a>
+            <a href="{{ weekNavUrls.nextWeekUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">{{ 'Next week'|t }}</a>
+        </div>
+        <div class="grid grid-cols-3 gap-4 mt-4 p-4 border rounded-lg shadow-sm border-gray-700 bg-gray-800 text-white">
+            <div class="col-span-1">
+       
+                <table class="w-full bg-gray-800 border border-gray-700">
+                    <thead>
+                        <tr>
+                            <th class="w-2/3 px-4 py-2 border-b border-gray-700 bg-gray-700 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">{{'Day'|t }}</th>
+                            <th class="w-1/3 px-4 py-2 border-b border-gray-700 bg-gray-700 text-right text-sm font-medium text-gray-300 uppercase tracking-wider">{{'Visits'|t }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for day, visits in weeklyStats.totalVisitsPerDay %}
+                        <tr class="{{ loop.index0 is even ? 'bg-gray-800' : 'bg-gray-700' }}">
+                            <td class="w-2/3 px-4 py-2 border-b border-gray-700 text-sm text-gray-300">{{ day }}</td>
+                            <td class="w-1/3 px-4 py-2 border-b border-gray-700 text-sm text-gray-300 text-right">{{ visits }}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr>
+                            <td class="w-2/3 px-4 py-2 border-b border-gray-700 text-sm text-gray-900 bg-gray-400 ">{{ 'Total visits'|t }}:</td>
+                            <td class="w-1/3 px-4 py-2 border-t text-right border-gray-700 text-sm text-gray-900 bg-gray-400">{{ totalWeeklyVisits }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+    
+            </div>
+            <div class="col-span-2">
+                <div class="p-4 h-full">
+                    <canvas id="visitsThisWeekLanguageChart"></canvas>
+                </div>    
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const languageMap = {{ languageMap|json_encode|raw }};
+    if (typeof languageMap === 'undefined') {
+        console.error('languageMap is not defined');
+        return;
+    }
+
+    const weeklyStats = JSON.parse('{{ lowercaseWeeklyStats|json_encode|raw }}');
+    const totalVisitsPerDay = weeklyStats.totalVisitsPerDay;
+    const dayLabels = Object.keys(totalVisitsPerDay);
+
+    const lineChartDataset = {
+        label: 'Total Plays',
+        data: dayLabels.map(day => totalVisitsPerDay[day]),
+        backgroundColor: '#27272a',
+        borderColor: 'white',
+        borderWidth: 2,
+        fill: true
+    };
+
+    const lineChartCtx = document.getElementById('visitsThisWeekChart').getContext('2d');
+    new Chart(lineChartCtx, {
+        type: 'line',
+        data: {
+            labels: dayLabels,
+            datasets: [lineChartDataset]
+        },
+        options: {
+            scales: {
+                x: {
+                    ticks: {
+                        color: 'white' // Change x-axis labels to white
+                    }
+                },
+                y: { beginAtZero: true }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+
+    const languageDayData = weeklyStats.languageDayData;
+    let barChartDatasets = [];
+
+    Object.keys(languageMap).forEach(languageCode => {
+        let languageData = dayLabels.map(day => languageDayData[day][languageCode] || 0);
+        const totalVisitsForLanguage = languageData.reduce((acc, cur) => acc + cur, 0);
+        if (totalVisitsForLanguage > 0) {
+            barChartDatasets.push({
+                label: languageMap[languageCode].name,
+                data: languageData,
+                backgroundColor: languageMap[languageCode].hex,
+                borderColor: languageMap[languageCode].hex,
+                borderWidth: 1,
+                stack: 'stacked'
+            });
+        }
+    });
+
+    const barChartCtx = document.getElementById('visitsThisWeekLanguageChart').getContext('2d');
+    new Chart(barChartCtx, {
+        type: 'bar',
+        data: {
+            labels: dayLabels,
+            datasets: barChartDatasets
+        },
+        options: {
+            indexAxis: 'x',
+            scales: {
+                x: { stacked: true,
+                    ticks: {
+                        color: 'white' // Change x-axis labels to white
+                    }
+                },
+                y: { stacked: true }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        color: 'white' // Change legend labels color to white
+                    }
+                },
+            }
+        }
+    });
+});
+</script>
+
+{% endblock %}

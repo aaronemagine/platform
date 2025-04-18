@@ -10,20 +10,18 @@
 
 {% set user = craft.app.user.identity %}
 {% set tabletId = craft.app.request.getQueryParam('id') %}
-{% set tablet = tabletId ? craft.entries.section('tablet').id(tabletId).one() : null %}
+{% set tablet = tabletId ? craft.entries.section('tablet').id(tabletId).siteId(1).one() : null %}
 
+{% set tablet = tabletId ? craft.entries.section('tablet').id(tabletId).siteId(1).one() : null %}
 
 {% if tablet is not null %}
-    {% set selectedVenues = tablet.venue.all() %}
-{% else %}
-    {% set selectedVenues = [] %}
+    {% set selectedVenues = tablet.venue.siteId(1).all() %}
 {% endif %}
 
-{% set userVenues = craft.entries.section('venues').authorId(currentUser.id).all() %}
+{% set userVenues = craft.entries.section('venues').authorId(currentUser.id).siteId(1).all() %}
 
 
 <div class="flex">
-    {% include 'includes/sidebar.twig' %}
 
     <!-- Main Content Area -->
     <main class="flex-1 bg-gray-900 p-6">

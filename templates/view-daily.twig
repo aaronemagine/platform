@@ -1,0 +1,165 @@
+{% cache %}
+{% extends 'includes/main.twig' %}
+{% endcache %}
+
+{% block content %}
+
+{% if not currentUser %}
+    {% redirect 'index' %}
+{% endif %}
+
+{% set selectedUserId = currentUser.id %}
+
+
+{% if selectedUserId %}
+
+    {% set dailyStats = craft.emstats.getTodayVisitsByTimeAndLanguage(craft.app.request.getParam('day'), selectedUserId) %}
+    {% set dayNavUrls = craft.emstats.getDayNavigationUrls(craft.app.request.getParam('day')) %}
+
+    {% set totalDailyVisits = 0 %}  
+
+    {% set lowercaseDailyStats = {} %}
+    {% if dailyStats is defined %}
+        {% for time, stats in dailyStats %}
+            {% set lowerStats = {} %}
+            {% for lang, count in stats %}
+                {% set lowerStats = lowerStats|merge({ (lang|lower): count }) %}
+                {% set totalDailyVisits = totalDailyVisits + count %}
+            {% endfor %}
+            {% set lowercaseDailyStats = lowercaseDailyStats|merge({ (time): lowerStats }) %}
+        {% endfor %}
+    {% endif %}
+
+{% endif %}
+
+{% set languageMap = craft.emstats.getLanguageMap %}
+{% set languages = languageMap|keys %}
+
+<div class="flex min-h-screen">
+    {% include 'includes/sidebar.twig' %}
+
+    <div class="flex-grow w-full bg-grey-500 p-4">
+        <div class="row-span-1">
+            {% set currentDayParam = craft.app.request.getParam('day') %}
+            {% set displayDay = currentDayParam ? currentDayParam|date('l, jS F, Y') : (craft.app.language == 'fr' ? 'Aujourd\'hui' : 'Today') %}
+            <h1 class="text-xl font-bold mb-2 text-white">
+                {{ 'Visits per hour'|t }}: {{ displayDay }} - ({{ totalDailyVisits }})
+            </h1>
+        </div>
+        <div class="grid grid-cols-3 gap-4 mt-4 p-4 border rounded-lg shadow-sm border-gray-700 bg-gray-800 text-white">
+            <div class="col-span-3">
+                <div class="p-4 h-full">
+                    <canvas id="barDayChart"></canvas>
+                </div>    
+            </div>
+        </div>
+        <div class="flex justify-between pt-4">
+            <a href="{{ dayNavUrls.prevDayUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">{{ 'Prev day'|t }}</a>
+            <a href="{{ dayNavUrls.nextDayUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">{{ 'Next day'|t }}</a>
+        </div>
+        <div class="grid grid-cols-4 gap-4 mt-4 p-4 border rounded-lg shadow-sm border-gray-700 bg-gray-800 text-white">
+
+                {% set dailyStatsList = dailyStats|keys|map(key => {'time': key, 'stats': dailyStats[key]}) %}
+{% set sortedDailyStatsList = dailyStatsList|sort((a, b) => a.time <=> b.time) %}
+{% set sortedDailyStats = sortedDailyStatsList|reduce((carry, item) => carry|merge({ (item.time): item.stats }), {}) %}
+{% set batchedDailyStats = sortedDailyStats|batch((sortedDailyStats|length / 2)|round(0, 'ceil')) %}
+
+                {% for batch in batchedDailyStats %}
+                <div class="col-span-2">
+                    <table class="w-full bg-gray-800 border border-gray-700">
+                        <thead>
+                            <tr>
+                                <th class="w-2/3 px-4 py-2 border-b border-gray-700 bg-gray-700 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">{{ 'Hour'|t }}</th>
+                                <th class="w-1/3 px-4 py-2 border-b border-gray-700 bg-gray-700 text-right text-sm font-medium text-gray-300 uppercase tracking-wider">{{ 'Visits'|t }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for time, stats in batch %}
+                            {% set totalCount = stats|reduce((sum, item) => sum + item, 0) %}
+                            <tr class="{{ loop.index0 is even ? 'bg-gray-800' : 'bg-gray-700' }}">
+                                <td class="w-2/3 px-4 py-2 border-b border-gray-700 text-sm text-gray-300">{{ time }}</td>
+                                <td class="w-1/3 px-4 py-2 border-b border-gray-700 text-sm text-gray-300 text-right">
+                                    {{ totalCount }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% if loop.last %}
+                                <tr>
+                                    <td class="w-2/3 px-4 py-2 border-b border-gray-700 text-sm text-gray-900 bg-gray-400">{{ 'Total visits'|t }}:</td>
+                                    <td class="w-1/3 px-4 py-2 border-t text-right border-gray-700 text-sm text-gray-900 bg-gray-400">{{ totalDailyVisits }}</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endfor %}
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const languageMap = {{ languageMap|json_encode|raw }};
+    if (typeof languageMap === 'undefined') {
+        console.error('languageMap is not defined');
+        return;
+    }
+
+    const dailyStats = JSON.parse('{{ lowercaseDailyStats|json_encode|raw }}');
+    const allLabels = Object.keys(dailyStats);
+    const timeSlots = [];
+    for (let hour = 8; hour <= 20; hour++) {
+        timeSlots.push(`${hour.toString().padStart(2, '0')}:00`);
+        timeSlots.push(`${hour.toString().padStart(2, '0')}:30`);
+    }
+
+    const filteredLabels = allLabels.filter(label => {
+        const hour = parseInt(label.split(':')[0]);
+        return hour >= 8 && hour <= 20;
+    });
+
+    datasets = [];
+
+    Object.keys(languageMap).forEach(function(languageCode) {
+        const languageInfo = languageMap[languageCode];
+        const color = languageInfo.hex;
+        const dataPoints = timeSlots.map(function(timeSlot) {
+            return dailyStats[timeSlot] && dailyStats[timeSlot][languageCode] ? dailyStats[timeSlot][languageCode] : 0;
+        });
+
+        if (dataPoints.some(point => point > 0)) {
+            datasets.push({
+                label: languageInfo.name,
+                backgroundColor: color,
+                data: dataPoints
+            });
+        }
+    });
+
+    const ctx = document.getElementById('barDayChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: timeSlots,
+            datasets: datasets
+        },
+        options: {
+            scales: {
+                x: { stacked: true },
+                y: { stacked: true }
+            },
+            plugins: {
+                legend: {
+                    display: datasets.length > 1,
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+});
+</script>
+
+{% endblock %}

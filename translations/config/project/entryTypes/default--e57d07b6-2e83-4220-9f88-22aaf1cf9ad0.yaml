@@ -1,0 +1,70 @@
+fieldLayouts:
+  98d97b80-d931-4bea-a8f2-ac3995ada231:
+    tabs:
+      -
+        elementCondition: null
+        elements:
+          -
+            autocapitalize: true
+            autocomplete: false
+            autocorrect: true
+            class: null
+            disabled: false
+            elementCondition: null
+            id: null
+            instructions: null
+            label: null
+            max: null
+            min: null
+            name: null
+            orientation: null
+            placeholder: null
+            readonly: false
+            requirable: false
+            size: null
+            step: null
+            tip: null
+            title: null
+            type: craft\fieldlayoutelements\entries\EntryTitleField
+            uid: 818eb59a-f2e0-4bc9-8d44-125c326ee79a
+            userCondition: null
+            warning: null
+            width: 100
+          -
+            elementCondition: null
+            fieldUid: 2beaf7df-846b-4115-add6-225b5ccb00af # uuid
+            instructions: null
+            label: null
+            required: false
+            tip: null
+            type: craft\fieldlayoutelements\CustomField
+            uid: d8380c95-7874-4caf-88da-41b697cb2a13
+            userCondition: null
+            warning: null
+            width: 100
+          -
+            elementCondition: null
+            fieldUid: 6af92e13-3817-4619-a65c-3522d4d1fc67 # Venue
+            instructions: null
+            label: null
+            required: false
+            tip: null
+            type: craft\fieldlayoutelements\CustomField
+            uid: b03998f2-e20c-4cd6-8258-13e9467f6977
+            userCondition: null
+            warning: null
+            width: 100
+        name: Content
+        uid: 6d1f4f9d-2976-4b5b-9500-68e168fe58f3
+        userCondition: null
+handle: default
+hasTitleField: true
+name: Default
+section: 738d7c8a-3444-45a3-b76c-228216046660 # Tablet
+showStatusField: true
+slugTranslationKeyFormat: null
+slugTranslationMethod: site
+sortOrder: 1
+titleFormat: null
+titleTranslationKeyFormat: null
+titleTranslationMethod: site

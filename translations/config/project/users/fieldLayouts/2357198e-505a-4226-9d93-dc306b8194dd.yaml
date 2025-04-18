@@ -1,0 +1,31 @@
+tabs:
+  -
+    elementCondition: null
+    elements:
+      -
+        elementCondition: null
+        fieldUid: 349ff4ce-c3d6-401e-a73d-26ef36146dba # Company Name
+        instructions: null
+        label: null
+        required: false
+        tip: null
+        type: craft\fieldlayoutelements\CustomField
+        uid: a033941f-3eeb-4aff-aacc-d944b30c1d14
+        userCondition: null
+        warning: null
+        width: 100
+      -
+        elementCondition: null
+        fieldUid: 0207e7b4-d278-47ba-9eda-56e414d8e476 # Kill code
+        instructions: null
+        label: null
+        required: false
+        tip: null
+        type: craft\fieldlayoutelements\CustomField
+        uid: 46490d56-5a75-4e8f-a8fc-7142f264cb11
+        userCondition: null
+        warning: null
+        width: 100
+    name: Details
+    uid: 16c37192-5bde-450b-8f80-00bb7e266800
+    userCondition: null

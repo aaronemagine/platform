@@ -43,17 +43,19 @@ class StatsVariable
     {
         $selectedDate = Craft::$app->getRequest()->getParam('date');
 
-         // Determine the current site language
+        // Determine the current site ID
+        $selectedSiteId = Craft::$app->getSites()->getCurrentSite()->id;
+
+        // Determine the current site language
         $language = Craft::$app->getSites()->getCurrentSite()->language;
 
-        // Set the day labels based on the current site language
-        if ($language === 'fr') {
-            $dayLabels = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-        } else {
-            $dayLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-        }
+        // Initialize day labels based on the current site language
+            $dayLabels = $language === 'fr' 
+        ? ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
+        : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-        return $this->_statsService->calculateWeeklyStats($selectedDate, $dayLabels, $userId);
+    
+        return $this->_statsService->calculateWeeklyStats($selectedDate, $dayLabels, $userId, $selectedSiteId);
     }
 
     public function getClientsList()

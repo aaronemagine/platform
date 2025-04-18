@@ -1,0 +1,24 @@
+defaultPlacement: end
+enableVersioning: true
+handle: statistics
+name: Statistics
+previewTargets:
+  -
+    __assoc__:
+      -
+        - label
+        - 'Primary entry page'
+      -
+        - urlFormat
+        - '{url}'
+      -
+        - refresh
+        - '1'
+propagationMethod: all
+siteSettings:
+  f957802c-8f19-44d3-a30a-668d452862ac: # Emagine VR Analytics
+    enabledByDefault: true
+    hasUrls: true
+    template: statistics/_entry
+    uriFormat: 'statistics/{slug}'
+type: channel

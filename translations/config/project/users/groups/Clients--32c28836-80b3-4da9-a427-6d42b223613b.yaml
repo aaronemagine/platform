@@ -1,0 +1,38 @@
+description: 'Clients to the analytics system'
+handle: Clients
+name: Clients
+permissions:
+  - 'createentries:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'createentries:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'createentries:cb843ec5-3aaa-44ea-94cf-f99f4023642f' # Statistics
+  - 'createentries:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
+  - 'deleteentries:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'deleteentries:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'deleteentries:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
+  - 'deletepeerentries:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'deletepeerentries:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'deletepeerentries:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
+  - 'deletepeerentrydrafts:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'deletepeerentrydrafts:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'deletepeerentrydrafts:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
+  - 'saveentries:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'saveentries:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'saveentries:cb843ec5-3aaa-44ea-94cf-f99f4023642f' # Statistics
+  - 'saveentries:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
+  - 'savepeerentries:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'savepeerentries:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'savepeerentries:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
+  - 'savepeerentrydrafts:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'savepeerentrydrafts:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'savepeerentrydrafts:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
+  - 'viewentries:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'viewentries:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'viewentries:b3e8c798-1f09-4ca2-ac30-695d0273d094' # Movies
+  - 'viewentries:cb843ec5-3aaa-44ea-94cf-f99f4023642f' # Statistics
+  - 'viewentries:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
+  - 'viewpeerentries:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'viewpeerentries:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'viewpeerentries:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
+  - 'viewpeerentrydrafts:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'viewpeerentrydrafts:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'viewpeerentrydrafts:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues

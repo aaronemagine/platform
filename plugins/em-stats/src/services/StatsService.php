@@ -6,6 +6,7 @@ use Craft;
 use craft\base\Component;
 use craft\elements\Entry;
 use craft\elements\User;
+use craft\db\Query;
 use craft\helpers\UrlHelper;
 use DateTime;
 
@@ -16,7 +17,7 @@ class StatsService extends Component
     public function getTotalVisitsCount($userId = null)
     {
 
-        $query = Entry::find()->section('statistics'); 
+        $query = Entry::find()->section('statistics')->siteId('*'); 
         if ($userId) {
             $query->authorId($userId);
         }
@@ -106,53 +107,72 @@ class StatsService extends Component
     }
 
 
-    public function calculateWeeklyStats($selectedDate = null, $dayLabels, $userId = null)
-    {
-        // Use the provided date or default to the current date
-        $date = $selectedDate ? new DateTime($selectedDate) : new DateTime();
+    public function calculateWeeklyStats($selectedDate = null, $dayLabels, $userId = null, $selectedSiteId = null)
+{
+    // Use the provided date or default to the current date
+    $date = $selectedDate ? new DateTime($selectedDate) : new DateTime();
 
-        // Find the start and end of the week based on the provided/current date
-        $startOfWeek = (clone $date)->modify('Monday this week')->setTime(0, 0);
-        $endOfWeek = (clone $date)->modify('Sunday this week')->setTime(23, 59, 59);
+    // Find the start and end of the week based on the provided/current date
+    $startOfWeek = (clone $date)->modify('Monday this week')->setTime(0, 0);
+    $endOfWeek = (clone $date)->modify('Sunday this week')->setTime(23, 59, 59);
 
-        // Query for entries within the week
-        $query = Entry::find()
-            ->section('statistics')
-            ->visitStart(['and', '>= ' . $startOfWeek->format(DateTime::ATOM), '<= ' . $endOfWeek->format(DateTime::ATOM)]);
+    // Query for entries within the week and for all sites
+    $query = Entry::find()
+        ->section('statistics')
+        ->siteId('*') // Fetch data for all sites
+        ->visitStart(['and', '>= ' . $startOfWeek->format(DateTime::ATOM), '<= ' . $endOfWeek->format(DateTime::ATOM)]);
 
-        if ($userId) {
-            $query->authorId($userId);
-        }
-
-        $visitsThisWeek = $query->all();
-
-        // Initialize the arrays to store the data
-        [$languageDayData, $totalVisitsPerDay] = $this->initializeData($dayLabels, array_keys($this->getLanguageMap()));
-
-        foreach ($visitsThisWeek as $entry) {
-            $dayOfWeek = $entry->visitStart->format('l'); // 'l' format represents the full textual representation of a day
-            //$language = $entry->visitLanguage;
-            
-            $language = strtolower($entry->visitLanguage);
-            
-            // Increment the language count for the day
-            if (!isset($languageDayData[$dayOfWeek][$language])) {
-                $languageDayData[$dayOfWeek][$language] = 0;
-            }
-            $languageDayData[$dayOfWeek][$language]++;
-            
-            // Increment the total visits for the day
-            if (!isset($totalVisitsPerDay[$dayOfWeek])) {
-                $totalVisitsPerDay[$dayOfWeek] = 0;
-            }
-            $totalVisitsPerDay[$dayOfWeek]++;
-        }
-        
-        return [
-            'languageDayData' => $languageDayData,
-            'totalVisitsPerDay' => $totalVisitsPerDay
-        ];
+    if ($userId) {
+        $query->authorId($userId);
     }
+
+    $visitsThisWeek = $query->all();
+
+    // Initialize the arrays to store the data
+    [$languageDayData, $totalVisitsPerDay] = $this->initializeData($dayLabels, array_keys($this->getLanguageMap()));
+
+    // Define a mapping for English to French day names
+    $englishToFrenchDays = [
+        'Monday' => 'lundi',
+        'Tuesday' => 'mardi',
+        'Wednesday' => 'mercredi',
+        'Thursday' => 'jeudi',
+        'Friday' => 'vendredi',
+        'Saturday' => 'samedi',
+        'Sunday' => 'dimanche'
+    ];
+
+    // Loop through the visits and process the data
+    foreach ($visitsThisWeek as $entry) {
+        $dayOfWeekEnglish = $entry->visitStart->format('l'); // 'l' format represents the full textual representation of a day
+
+        // Check if the selected site is French and translate day names accordingly
+        if ($selectedSiteId === 2) { // Assuming site ID 2 is the French site
+            $dayOfWeek = $englishToFrenchDays[$dayOfWeekEnglish];
+        } else {
+            $dayOfWeek = $dayOfWeekEnglish;
+        }
+
+        $language = strtolower($entry->visitLanguage);
+
+        // Increment the language count for the day
+        if (!isset($languageDayData[$dayOfWeek][$language])) {
+            $languageDayData[$dayOfWeek][$language] = 0;
+        }
+        $languageDayData[$dayOfWeek][$language]++;
+
+        // Increment the total visits for the day
+        if (!isset($totalVisitsPerDay[$dayOfWeek])) {
+            $totalVisitsPerDay[$dayOfWeek] = 0;
+        }
+        $totalVisitsPerDay[$dayOfWeek]++;
+    }
+
+    return [
+        'languageDayData' => $languageDayData,
+        'totalVisitsPerDay' => $totalVisitsPerDay
+    ];
+}
 
     public function getMonthNavigationUrls($dateParam = null): array
     {
@@ -217,6 +237,7 @@ class StatsService extends Component
             // Query for entries within the week
             $query = Entry::find()
                 ->section('statistics')
+                ->siteId('1')
                 ->visitStart(['and', '>= ' . $currentWeekStart->format(DateTime::ATOM), '<= ' . $currentWeekEnd->format(DateTime::ATOM)]);
 
             if ($userId) {
@@ -296,6 +317,7 @@ class StatsService extends Component
 
         $entries = Entry::find()
             ->section('statistics')
+            ->siteId('1')
             ->authorId($userId)
             ->visitStart(['and', '>= ' . $startOfDay->format(DateTime::ATOM), '< ' . $endOfDay->format(DateTime::ATOM)])
             ->all();
@@ -326,35 +348,88 @@ class StatsService extends Component
     }
 
 
-    public function getTotalVisitsPerLanguage($userId = null): array
-    {
-        $languageTotals = [];
+    // public function getTotalVisitsPerLanguage($userId = null): array
+    // {
+    //     $languageTotals = [];
 
-        // Retrieve all entries from the 'statistics' section
-        $query = Entry::find()->section('statistics');
-        if ($userId) {
-        $query->authorId($userId);
-        }
-        $entries = $query->all();
+    //     // Retrieve all entries from the 'statistics' section
+    //     $query = Entry::find()->section('statistics')->siteId('1');
+    //     if ($userId) {
+    //     $query->authorId($userId);
+    //     }
+    //     $entries = $query->all();
 
-        // Iterate over entries to sum visits per language
-        foreach ($entries as $entry) {
-            // Assuming 'visitLanguage' is the field handle for the language of the visit
-            $language = strtolower($entry->visitLanguage);
-            if (!array_key_exists($language, $languageTotals)) {
-                $languageTotals[$language] = 0;
-            }
-            $languageTotals[$language]++;
-        }
+    //     // Iterate over entries to sum visits per language
+    //     foreach ($entries as $entry) {
+    //         // Assuming 'visitLanguage' is the field handle for the language of the visit
+    //         $language = strtolower($entry->visitLanguage);
+    //         if (!array_key_exists($language, $languageTotals)) {
+    //             $languageTotals[$language] = 0;
+    //         }
+    //         $languageTotals[$language]++;
+    //     }
 
-        return $languageTotals;
+    //     // Sort the totals in descending order
+    //     arsort($languageTotals);
+
+    //     return $languageTotals;
+    // }
+
+
+
+public function getTotalVisitsPerLanguage($userId = null): array
+{
+    $query = (new Query())
+        ->select(['lower([[content.field_visitLanguage_akixlfui]]) as language', 'COUNT(*) as count'])
+        ->from(['entries' => '{{%entries}}'])
+        ->leftJoin('{{%content}} content', '[[content.elementId]] = [[entries.id]]')
+        ->where(['entries.sectionId' => 2]) // Replace with actual section ID for 'statistics'
+        ->groupBy('language');
+
+    if ($userId) {
+        $query->andWhere(['entries.authorId' => $userId]);
     }
+
+    return $query->all();
+}
+
+// public function getTotalVisitsPerLanguage($userId = null): array
+// {
+//     $section = Craft::$app->sections->getSectionByHandle('statistics');
+//     if (!$section) {
+//         Craft::error('Section with handle "statistics" not found.', __METHOD__);
+//         return [];
+//     }
+//     $sectionId = $section->id;
+
+//     $entries = Entry::find()
+//         ->sectionId($sectionId)
+//         ->siteId('*')
+//         ->status(null) // Include all statuses if necessary
+//         ->authorId($userId)
+//         ->all();
+
+//     $languageTotals = [];
+
+//     foreach ($entries as $entry) {
+//         $language = strtolower($entry->getFieldValue('visitLanguage') ?? 'unknown');
+//         if (!isset($languageTotals[$language])) {
+//             $languageTotals[$language] = 0;
+//         }
+//         $languageTotals[$language]++;
+//     }
+
+//     arsort($languageTotals);
+
+//     return $languageTotals;
+// }
+
 
     public function getTotalVisitsPerVenue($userId = null): array
     {
         $venueTotals = [];
 
-        $query = Entry::find()->section('statistics');
+        $query = Entry::find()->section('statistics')->siteId('1');
         $query->with('venue');
         if ($userId) {
         $query->authorId($userId);
@@ -381,7 +456,7 @@ class StatsService extends Component
     {
         $movieTotals = [];
 
-        $query = Entry::find()->section('statistics');
+        $query = Entry::find()->section('statistics')->siteId('1');
         $query->with('movie');
         if ($userId) {
         $query->authorId($userId);
@@ -414,6 +489,7 @@ class StatsService extends Component
         // Fetch all entries from the 'statistics' section where the author is the given user
         $statisticsEntries = \craft\elements\Entry::find()
             ->section('statistics')
+            ->siteId('1')
             ->authorId($userId)
             ->all();
 

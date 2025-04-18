@@ -9,11 +9,10 @@
 {% endif %}
 
 {% set user = craft.app.user.identity %}
-{% set headsets = craft.entries.section('headsets').authorId(user.id).all() %}
+{% set headsets = craft.entries.section('headsets').authorId(user.id).siteId(1).all() %}
 
 <div class="flex min-h-screen">
 
-    {% include 'includes/sidebar.twig' %}
 
     <!-- Main Content Area -->
     <div class="flex-grow w-full bg-grey-500 p-4">

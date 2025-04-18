@@ -1,0 +1,20 @@
+columnSuffix: jucrfber
+contentColumnType: integer(10)
+fieldGroup: 70c63edf-2fc7-463d-bef9-779cc51b7d25 # Common
+handle: uuid
+instructions: null
+name: uuid
+searchable: false
+settings:
+  decimals: 0
+  defaultValue: null
+  max: null
+  min: 0
+  prefix: null
+  previewCurrency: null
+  previewFormat: decimal
+  size: null
+  suffix: null
+translationKeyFormat: null
+translationMethod: none
+type: craft\fields\Number

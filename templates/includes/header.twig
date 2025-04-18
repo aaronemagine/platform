@@ -1,10 +1,94 @@
 <!DOCTYPE html>
-<html lang="{{ craft.app.language }}">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Analytics Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 <link rel="stylesheet" href="/css/custom.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    #mobile-menu {
+        transition: transform 0.3s ease-in-out;
+    }
+</style>
 </head>
 <body class="bg-gray-800">
+<script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
+
+<nav>
+  <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto">
+    <a href="#" class="flex items-center space-x-4 rtl:space-x-reverse">
+        <img src="/assets/analytics-logo3.webp" alt="Analytics Logo" class="block mx-auto h-12 rounded-full">
+    </a>
+    <button data-collapse-toggle="navbar-hamburger" type="button" class="inline-flex items-center justify-center p-2 w-10 h-10 mr-5 text-sm text-gray-500 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-700 dark:text-gray-400 dark:hover:bg-gray-200 dark:focus:ring-gray-600" aria-controls="navbar-hamburger" aria-expanded="false">
+      <span class="sr-only">Open main menu</span>
+      <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
+      </svg>
+    </button>
+    <div class="hidden w-full border rounded-lg border-gray-700 bg-gray-900 text-white sm:p-6 mt-1.5" id="navbar-hamburger">
+    	<h3 class="text-xl font-bold mb-2 py-2 px-3">{{ 'Visits'|t }}</h3>
+            <ul>
+                <li>
+                    <a href="dashboard" class="block py-2 px-3 text-gray-200 rounded hover:text-gray-900 hover:bg-gray-300">{{ 'Today'|t }}</a>
+                </li>
+                <li>
+                    <a href="view-weekly" class="block py-2 px-3 text-gray-200 rounded hover:text-gray-900 hover:bg-gray-300">{{ 'By Week'|t }}</a>
+                </li>
+                <li>
+                    <a href="view-monthly" class="block py-2 px-3 text-gray-200 rounded hover:text-gray-900 hover:bg-gray-300">{{ 'By Month'|t }}</a>
+                </li>
+                <li>
+                    <a href="view-languages" class="block py-2 px-3 text-gray-200 rounded hover:text-gray-900  hover:bg-gray-300">{{ 'By Language'|t }}</a>
+                </li>
+{#                 <li>
+                    <a href="view-venues" class="text-gray-200 rounded hover:bg-gray-300">{{ 'By Venue'|t }}</a>
+                </li>
+                <li>
+                    <a href="view-movies" class="text-gray-200 rounded hover:bg-gray-300">{{ 'By Movie'|t }}</a>
+                </li> #}
+      {#           <li>
+                    <a href="view-headsets" class="text-sm text-gray-200 rounded hover:bg-gray-300">{{ 'By Headset'|t }}</a>
+                </li> #}
+            </ul>
+
+            <h3 class="text-xl font-bold py-2 px-3 mb-2">{{ 'Admin'|t }}</h3>
+            <ul>
+                <li>
+                    <a href="venues" class="block py-2 px-3 text-gray-200 rounded hover:text-gray-900 hover:bg-gray-300">{{ 'Venues'|t }}</a>
+                </li>
+                <li>
+                    <a href="headsets" class="block py-2 px-3 text-gray-200 rounded hover:text-gray-900 hover:bg-gray-300">{{ 'Headsets'|t }}</a>
+                </li>
+                <li>
+                    <a href="tablets" class="block py-2 px-3 text-gray-200 rounded hover:text-gray-900 hover:bg-gray-300">{{ 'Tablets'|t }}</a>
+                </li>
+                <li>
+                    <a href="edit-profile" class="block py-2 px-3 text-gray-200 rounded hover:text-gray-900 hover:bg-gray-300">{{ 'Profile'|t }}</a>
+                </li>
+                <li>
+                    <form method="post" action="" accept-charset="UTF-8" class="inline  py-2 px-3 text-gray-200 rounded hover:text-gray-900 hover:bg-gray-300">
+                        {{ csrfInput() }}
+                        <input type="hidden" name="action" value="users/logout">
+                        <button type="submit" class="text-white">{{ 'Logout'|t }}</button>
+                    </form>
+                </li>
+            </ul>
+
+
+            {% set currentUrl = craft.app.request.url %}
+            {% set currentPath = craft.app.request.pathInfo %}
+            {% set queryString = craft.app.request.queryString %}
+
+            <ul class="flex mt-4 py-2 px-3">
+                <li class="mr-4">
+                    <a href="{{ url('/fr/' ~ currentPath) }}" class="px-4 py-2 bg-amber-700 text-white rounded hover:bg-blue-700">fr</a>
+                </li>
+                <li>
+                    <a href="{{ url('/' ~ currentPath) }}" class="px-4 py-2 bg-amber-700 text-white rounded hover:bg-blue-700">en</a>
+                </li>
+            </ul>
+    </div>
+  </div>
+</nav>

@@ -1,0 +1,14 @@
+columnSuffix: ilhulyow
+contentColumnType: boolean
+fieldGroup: 5778bcdf-1965-4d5d-9dfe-4f703a474aae # Movies
+handle: isMultiFile
+instructions: null
+name: 'Multi file'
+searchable: false
+settings:
+  default: false
+  offLabel: null
+  onLabel: null
+translationKeyFormat: null
+translationMethod: none
+type: craft\fields\Lightswitch

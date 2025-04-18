@@ -10,11 +10,11 @@
 
 {% set user = craft.app.user.identity %}
 {% set venueId = craft.app.request.getQueryParam('id') %}
-{% set venue = venueId ? craft.entries.section('venues').id(venueId).one() : null %}
+{% set venue = venueId ? craft.entries.section('venues').id(venueId).siteId(1).one() : null %}
 
 
 {% if venue is not null %}
-    {% set selectedMovies = venue.movies.all() %}
+    {% set selectedMovies = venue.movies.siteId(1).all() %}
 {% else %}
     {% set selectedMovies = [] %}
 {% endif %}
@@ -23,7 +23,6 @@
 
 
 <div class="flex">
-    {% include 'includes/sidebar.twig' %}
 
     <!-- Main Content Area -->
     <main class="flex-1 bg-gray-900 p-6">

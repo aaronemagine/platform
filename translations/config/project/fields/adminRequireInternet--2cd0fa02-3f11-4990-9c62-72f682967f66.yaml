@@ -1,0 +1,14 @@
+columnSuffix: yknlbngj
+contentColumnType: boolean
+fieldGroup: cfe8b169-e903-42f6-92ac-f4af56aa1ab8 # Venues
+handle: adminRequireInternet
+instructions: null
+name: 'Admin Require Internet'
+searchable: false
+settings:
+  default: false
+  offLabel: 'No'
+  onLabel: 'Yes'
+translationKeyFormat: null
+translationMethod: none
+type: craft\fields\Lightswitch

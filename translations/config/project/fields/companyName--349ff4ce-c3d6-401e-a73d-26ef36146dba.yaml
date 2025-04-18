@@ -1,0 +1,19 @@
+columnSuffix: tcownruz
+contentColumnType: text
+fieldGroup: 6107f7f5-b967-4eff-900d-72acac322b28 # Users
+handle: companyName
+instructions: null
+name: 'Company Name'
+searchable: false
+settings:
+  byteLimit: null
+  charLimit: null
+  code: false
+  columnType: null
+  initialRows: 4
+  multiline: false
+  placeholder: null
+  uiMode: normal
+translationKeyFormat: null
+translationMethod: none
+type: craft\fields\PlainText

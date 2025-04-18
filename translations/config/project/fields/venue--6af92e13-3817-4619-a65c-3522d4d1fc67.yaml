@@ -1,0 +1,35 @@
+columnSuffix: knhntkbg
+contentColumnType: string
+fieldGroup: d4460fc8-b976-4652-92d2-7d820d7502ef # Statistics
+handle: venue
+instructions: null
+name: Venue
+searchable: false
+settings:
+  allowSelfRelations: false
+  branchLimit: null
+  localizeRelations: false
+  maintainHierarchy: false
+  maxRelations: 1
+  minRelations: null
+  selectionCondition:
+    __assoc__:
+      -
+        - elementType
+        - craft\elements\Entry
+      -
+        - fieldContext
+        - global
+      -
+        - class
+        - craft\elements\conditions\entries\EntryCondition
+  selectionLabel: null
+  showSiteMenu: true
+  sources:
+    - 'section:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
+  targetSiteId: null
+  validateRelatedElements: false
+  viewMode: null
+translationKeyFormat: null
+translationMethod: site
+type: craft\fields\Entries

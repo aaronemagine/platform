@@ -9,11 +9,11 @@
 {% endif %}
 
 {% set headsetId = craft.app.request.getQueryParam('id') %}
-{% set headset = headsetId ? craft.entries.section('headsets').id(headsetId).one() : null %}
+{% set headset = headsetId ? craft.entries.section('headsets').id(headsetId).siteId(1).one() : null %}
 
 
 <div class="flex">
-    {% include 'includes/sidebar.twig' %}
+
 
     <!-- Main Content Area -->
     <main class="flex-1 bg-gray-900 p-6">
@@ -88,7 +88,7 @@
                         {{'Venue'|t}}
                     </label>
                     <select id="fields[venue][]" name="fields[venue][]" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                        {% set userVenues = craft.entries.section('venues').authorId(currentUser.id).all() %}
+                        {% set userVenues = craft.entries.section('venues').authorId(currentUser.id).siteId(1).all() %}
                         {% set currentVenueId = headset is not null and headset.venue.one() ? headset.venue.one().id : null %}
                         {% for venue in userVenues %}
                             <option value="{{ venue.id }}" {% if currentVenueId == venue.id %}selected{% endif %}>
