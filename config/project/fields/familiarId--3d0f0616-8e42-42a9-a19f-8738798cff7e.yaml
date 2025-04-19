@@ -1,6 +1,5 @@
 columnSuffix: gkzqjlpu
 contentColumnType: text
-fieldGroup: 70c63edf-2fc7-463d-bef9-779cc51b7d25 # Common
 handle: familiarId
 instructions: 'This is what order the headset will appear on the tablet app. Use a number starting from 1 - upwards.'
 name: 'Familiar ID'

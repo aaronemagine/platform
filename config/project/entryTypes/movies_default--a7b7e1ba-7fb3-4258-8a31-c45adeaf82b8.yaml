@@ -1,0 +1,93 @@
+fieldLayouts:
+  f34af012-d7be-42c8-99fe-b20987d7b77d:
+    tabs:
+      -
+        elementCondition: null
+        elements:
+          -
+            autocapitalize: true
+            autocomplete: false
+            autocorrect: true
+            class: null
+            disabled: false
+            elementCondition: null
+            id: null
+            instructions: null
+            label: null
+            max: null
+            min: null
+            name: null
+            orientation: null
+            placeholder: null
+            readonly: false
+            requirable: false
+            size: null
+            step: null
+            tip: null
+            title: null
+            type: craft\fieldlayoutelements\entries\EntryTitleField
+            uid: 3212ee3b-9702-43bb-b2c9-20825de5c4cd
+            userCondition: null
+            warning: null
+            width: 100
+          -
+            elementCondition: null
+            fieldUid: aed2ee8a-2dee-4ab3-901a-1879f256c4eb # Channels
+            instructions: null
+            label: null
+            required: false
+            tip: null
+            type: craft\fieldlayoutelements\CustomField
+            uid: 54e4dee3-4c99-4f3f-bac4-7fca89c7ecdb
+            userCondition: null
+            warning: null
+            width: 100
+          -
+            elementCondition: null
+            fieldUid: 9dd0fcef-7fc7-4022-8895-dd131c6a9e34 # Is mono
+            instructions: null
+            label: null
+            required: false
+            tip: null
+            type: craft\fieldlayoutelements\CustomField
+            uid: a336898f-8e8a-4fb4-b3f1-e4f1d4384d7d
+            userCondition: null
+            warning: null
+            width: 100
+          -
+            elementCondition: null
+            fieldUid: 5eb9494d-e974-4bd7-9907-c2f0ff32dc4e # Multi file
+            instructions: null
+            label: null
+            required: false
+            tip: null
+            type: craft\fieldlayoutelements\CustomField
+            uid: b792a36e-f5ab-4e0c-a2fb-0c0ac91aeb2d
+            userCondition: null
+            warning: null
+            width: 100
+          -
+            elementCondition: null
+            fieldUid: c6455775-de50-45da-9bf6-a7defa634c50 # Runtime
+            instructions: null
+            label: null
+            required: false
+            tip: null
+            type: craft\fieldlayoutelements\CustomField
+            uid: 612a74f0-fb1a-4bf2-9335-948700c5978a
+            userCondition: null
+            warning: null
+            width: 100
+        name: Content
+        uid: 51f08e6f-f44f-4293-bc27-451451544caa
+        userCondition: null
+handle: movies_default
+hasTitleField: true
+name: Default
+showStatusField: true
+slugTranslationKeyFormat: null
+slugTranslationMethod: site
+sortOrder: 1
+titleFormat: null
+titleTranslationKeyFormat: null
+titleTranslationMethod: site

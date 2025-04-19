@@ -1,6 +1,11 @@
 defaultPlacement: end
 enableVersioning: true
+entryTypes:
+  -
+    handle: default
+    uid: 17e706db-ccd3-4eab-9d3a-e8e5fed9d10a # Default
 handle: headsets
+maxAuthors: 1
 name: Headsets
 previewTargets:
   -

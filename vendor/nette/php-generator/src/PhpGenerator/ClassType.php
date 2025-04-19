@@ -13,7 +13,7 @@ use Nette;
 
 
 /**
- * Class description.
+ * Definition of a class with properties, methods, constants, traits and PHP attributes.
  */
 final class ClassType extends ClassLike
 {
@@ -29,7 +29,6 @@ final class ClassType extends ClassLike
 		TYPE_TRAIT = 'trait',
 		TYPE_ENUM = 'enum';
 
-	private string $type = self::TYPE_CLASS;
 	private bool $final = false;
 	private bool $abstract = false;
 	private ?string $extends = null;
@@ -82,28 +81,11 @@ final class ClassType extends ClassLike
 	}
 
 
-	public function isClass(): bool
-	{
-		return $this->type === self::TYPE_CLASS;
-	}
-
-
-	public function isInterface(): bool
-	{
-		return $this->type === self::TYPE_INTERFACE;
-	}
-
-
-	public function isTrait(): bool
-	{
-		return $this->type === self::TYPE_TRAIT;
-	}
-
-
 	/** @deprecated */
 	public function getType(): string
 	{
-		return $this->type;
+		trigger_error(__METHOD__ . "() is deprecated, method always returns 'class'", E_USER_DEPRECATED);
+		return self::TYPE_CLASS;
 	}
 
 
@@ -195,7 +177,7 @@ final class ClassType extends ClassLike
 	}
 
 
-	public function addMember(Method|Property|Constant|TraitUse $member): static
+	public function addMember(Method|Property|Constant|TraitUse $member, bool $overwrite = false): static
 	{
 		$name = $member->getName();
 		[$type, $n] = match (true) {
@@ -204,11 +186,29 @@ final class ClassType extends ClassLike
 			$member instanceof Property => ['properties', $name],
 			$member instanceof TraitUse => ['traits', $name],
 		};
-		if (isset($this->$type[$n])) {
+		if (!$overwrite && isset($this->$type[$n])) {
 			throw new Nette\InvalidStateException("Cannot add member '$name', because it already exists.");
 		}
 		$this->$type[$n] = $member;
 		return $this;
+	}
+
+
+	/**
+	 * @deprecated use ClassManipulator::inheritProperty()
+	 */
+	public function inheritProperty(string $name, bool $returnIfExists = false): Property
+	{
+		return (new ClassManipulator($this))->inheritProperty($name, $returnIfExists);
+	}
+
+
+	/**
+	 * @deprecated use ClassManipulator::inheritMethod()
+	 */
+	public function inheritMethod(string $name, bool $returnIfExists = false): Method
+	{
+		return (new ClassManipulator($this))->inheritMethod($name, $returnIfExists);
 	}
 
 
@@ -225,8 +225,9 @@ final class ClassType extends ClassLike
 	}
 
 
-	public function __clone()
+	public function __clone(): void
 	{
+		parent::__clone();
 		$clone = fn($item) => clone $item;
 		$this->consts = array_map($clone, $this->consts);
 		$this->methods = array_map($clone, $this->methods);

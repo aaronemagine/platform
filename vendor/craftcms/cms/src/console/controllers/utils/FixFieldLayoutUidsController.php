@@ -47,29 +47,25 @@ class FixFieldLayoutUidsController extends Controller
 
     private function _fixUids(array $config, int &$count, string $path = '', array &$uids = []): void
     {
-        if (isset($config['fieldLayouts']) && is_array($config['fieldLayouts'])) {
+        if (is_array($config['fieldLayouts'] ?? null)) {
             $modified = false;
-
             foreach ($config['fieldLayouts'] as $fieldLayoutUid => &$fieldLayoutConfig) {
-                if (isset($fieldLayoutConfig['tabs']) && is_array($fieldLayoutConfig['tabs'])) {
-                    foreach ($fieldLayoutConfig['tabs'] as $tabIndex => &$tabConfig) {
-                        $tabPath = ($path ? "$path." : '') . "fieldLayouts.$fieldLayoutUid.tabs.$tabIndex";
-                        $this->_checkUid($tabConfig, $count, $uids, $modified, $tabPath);
-
-                        if (isset($tabConfig['elements']) && is_array($tabConfig['elements'])) {
-                            foreach ($tabConfig['elements'] as $elementIndex => &$elementConfig) {
-                                $elementPath = "$tabPath.elements.$elementIndex";
-                                $this->_checkUid($elementConfig, $count, $uids, $modified, $elementPath);
-                            }
-                        }
-                    }
-                }
+                $fieldLayoutPath = sprintf('%sfieldLayouts.%s', $path ? "$path." : '', $fieldLayoutUid);
+                $this->_fixUidsInLayout($fieldLayoutConfig, $count, $fieldLayoutPath, $uids, $modified);
             }
-
             if ($modified) {
                 Craft::$app->getProjectConfig()->set($path, $config);
             }
+            return;
+        }
 
+        if (is_array($config['fieldLayout'] ?? null)) {
+            $modified = false;
+            $fieldLayoutPath = sprintf('%sfieldLayout', $path ? "$path." : '');
+            $this->_fixUidsInLayout($config['fieldLayout'], $count, $fieldLayoutPath, $uids, $modified);
+            if ($modified) {
+                Craft::$app->getProjectConfig()->set($path, $config);
+            }
             return;
         }
 
@@ -80,12 +76,34 @@ class FixFieldLayoutUidsController extends Controller
         }
     }
 
+    private function _fixUidsInLayout(
+        array &$fieldLayoutConfig,
+        int &$count,
+        string $path,
+        array &$uids,
+        bool &$modified,
+    ): void {
+        if (isset($fieldLayoutConfig['tabs']) && is_array($fieldLayoutConfig['tabs'])) {
+            foreach ($fieldLayoutConfig['tabs'] as $tabIndex => &$tabConfig) {
+                $tabPath = "$path.tabs.$tabIndex";
+                $this->_checkUid($tabConfig, $count, $uids, $modified, $tabPath);
+
+                if (isset($tabConfig['elements']) && is_array($tabConfig['elements'])) {
+                    foreach ($tabConfig['elements'] as $elementIndex => &$elementConfig) {
+                        $elementPath = "$tabPath.elements.$elementIndex";
+                        $this->_checkUid($elementConfig, $count, $uids, $modified, $elementPath);
+                    }
+                }
+            }
+        }
+    }
+
     private function _checkUid(array &$config, int &$count, array &$uids, bool &$modified, string $path): void
     {
         if (empty($config['uid'])) {
-            $reason = 'Duplicate UUID found at';
+            $reason = 'Missing UUID found at';
         } elseif (isset($uids[$config['uid']])) {
-            $reason = 'Missing UUID at';
+            $reason = 'Duplicate UUID at';
         } else {
             $uids[$config['uid']] = true;
             return;

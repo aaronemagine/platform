@@ -1,123 +1,106 @@
-{% cache %}
 {% extends 'includes/main.twig' %}
-{% endcache %}
 
 {% block content %}
 
-{% if not currentUser %}
-    {% redirect 'index' %}
-{% endif %}
+    {# ─────────── AUTH / PARAMS ─────────── #}
+    {% if not currentUser %}{% redirect 'index' %}{% endif %}
+    {% set userId = currentUser.id %}
 
-{% set selectedUserId = currentUser.id %}
+    {# ─────────── DATA GATHERING ─────────── #}
+    {% do craft.app.session.set('selectedUserId', userId) %}
+    {% set selectedUser    = craft.users().id(userId).one() %}
+    {% set totalEntries    = craft.emstats.getTotalVisitsCount(userId) %}
+    {% set totalLangCounts = craft.emstats.getTotalVisitsPerLanguage(userId) %}
+    {% set languageMap     = craft.emstats.getLanguageMap() %}
 
-{% if selectedUserId %}
-    {% do craft.app.session.set('selectedUserId', selectedUserId) %}
-    {% set selectedUser = craft.users().id(selectedUserId).one() %}
-    {% if selectedUser %}
-        {% set selectedCompany = selectedUser.getFieldValue('companyName') %}
-        {% set totalEntries = craft.emstats.getTotalVisitsCount(selectedUserId) %}
-        {% set totalVisitsPerLanguage = craft.emstats.getTotalVisitsPerLanguage(selectedUserId) %}
-    {% endif %}
-{% endif %}
+    {# ─────────── DISPLAY ─────────── #}
+    <div class="flex min-h-screen">
+      <div class="flex-grow w-full bg-gray-900 p-6">
 
-{% set languageMap = craft.emstats.getLanguageMap %}
-{% set languages = languageMap|keys %}
+        <h1 class="text-2xl font-bold mb-6 text-white">
+          {{ 'Visits by language'|t }}
+        </h1>
 
-<div class="flex min-h-screen">
+        <div class="grid md:grid-cols-2 gap-6">
+          {# ───────────── TABLE ───────────── #}
+          <div class="bg-gray-800 p-4 rounded-lg shadow">
+            <table class="w-full text-white">
+              <thead>
+                <tr>
+                  <th class="px-4 py-2 bg-gray-700 text-sm uppercase">{{ 'Language'|t }}</th>
+                  <th class="px-4 py-2 bg-gray-700 text-sm uppercase text-right">{{ 'Visits'|t }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for code, count in totalLangCounts %}
+                  <tr class="{{ loop.index0 is even ? 'bg-gray-800' : 'bg-gray-700' }}">
+                    <td class="px-4 py-2">
+                      {{ languageMap[code].name ?? code }}
+                    </td>
+                    <td class="px-4 py-2 text-right">{{ count }}</td>
+                  </tr>
+                {% endfor %}
+                <tr>
+                  <td class="px-4 py-2 bg-gray-600 font-semibold">{{ 'Total visits'|t }}:</td>
+                  <td class="px-4 py-2 bg-gray-600 font-semibold text-right">{{ totalEntries }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-    <div class="flex-grow w-full bg-grey-500 p-4">
-        <div class="row-span-1">
-            <h1 class="text-xl font-bold mb-2 text-white">
-                {{ 'Visits by language'|t }}
-            </h1>
+          {# ───────────── PIE / DOUGHNUT CHART ───────────── #}
+          <div class="bg-gray-800 p-4 rounded-lg shadow flex items-center">
+            <canvas id="languagePieChart"></canvas>
+          </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="p-4 bg-gray-800 text-white border border-gray-700 rounded-lg shadow-2xl">
-                <div class="grid grid-rows-1 gap-4">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full bg-gray-800 border border-gray-700">
-                            <thead>
-                                <tr>
-                                    <th class="w-2/3 px-4 py-2 border-b border-gray-700 bg-gray-700 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">{{ 'Language'|t }}</th>
-                                    <th class="w-1/3 px-4 py-2 border-b border-gray-700 bg-gray-700 text-right text-sm font-medium text-gray-300 uppercase tracking-wider">{{ 'Visits'|t }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for code, total in totalVisitsPerLanguage %}
-                                {% set languageName = languageMap[code].name ?? code %}
-                                <tr class="{{ loop.index0 is even ? 'bg-gray-800' : 'bg-gray-700' }}">
-                                    <td class="w-2/3 px-4 py-2 border-b border-gray-700 text-sm text-gray-300">{{ total.language }}</td>
-                                    <td class="w-1/3 px-4 py-2 border-b border-gray-700 text-sm text-right text-gray-300">{{ total.count }}</td>
-                                </tr>
-                                {% endfor %}
-                                <tr>
-                                    <td class="w-2/3 px-4 py-2 border-b border-gray-700 text-sm text-gray-900 bg-gray-400">{{ 'Total visits'|t }}:</td>
-                                    <td class="w-1/3 px-4 py-2 border-t text-right border-gray-700 text-sm text-gray-900 bg-gray-400">{{ totalEntries }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="p-4 border rounded-lg shadow-2xl col-span-1 border-gray-700 sm:p-6 bg-gray-800 text-white">
-                <div class="flex">
-                        <canvas id="languagePieChart"></canvas>
-                </div>
-            </div>
-        </div>
-        
+
+      </div>
     </div>
-</div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const languageMap = {{ languageMap|json_encode|raw }};
-    if (typeof languageMap === 'undefined') {
-        console.error('languageMap is not defined');
-        return;
-    }
+    {# ─────────── CHART.JS SCRIPT ─────────── #}
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
 
-    var totalVisitsPerLanguage = {{ totalVisitsPerLanguage is not null ? totalVisitsPerLanguage|json_encode|raw : 'null' }};
-    if (typeof totalVisitsPerLanguage !== 'undefined') {
-        const labels = [];
-        const data = [];
-        const colors = [];
+      const langMap  = {{ languageMap|json_encode|raw }};
+      const langData = {{ totalLangCounts|json_encode|raw }};
 
-        Object.keys(totalVisitsPerLanguage).forEach(code => {
-            if (languageMap[code]) {
-                labels.push(languageMap[code].name);
-                data.push(totalVisitsPerLanguage[code]);
-                colors.push(languageMap[code].hex);
-            } else {
-                console.error('Language code ' + code + ' does not exist in languageMap');
-            }
-        });
+      const labels = [];
+      const data   = [];
+      const colors = [];
 
-        const pieCtx = document.getElementById('languagePieChart').getContext('2d');
-        new Chart(pieCtx, {
-            type: 'doughnut',
-            data: {
-                labels: labels,
-                datasets: [{ data: data, backgroundColor: colors, borderWidth: 0 }]
+      Object.entries(langData).forEach(([code, count]) => {
+        if (langMap[code]) {
+          labels.push(langMap[code].name);
+          data.push(count);
+          colors.push(langMap[code].hex);
+        }
+      });
+
+      new Chart(
+        document.getElementById('languagePieChart'),
+        {
+          type: 'doughnut',
+          data: {
+            labels,
+            datasets: [{
+              data,
+              backgroundColor: colors,
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { color: 'white' }
+              }
             },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'bottom',
-                        labels: {
-                            color: 'white' // Change legend labels color to white
-                        }
-                    },
-                },
-                cutout: '50%'
-            }
-        });
-    } else {
-        console.log("totalVisitsPerLanguage is not defined");
-    }
-});
-</script>
+            cutout: '50%'
+          }
+        }
+      );
+    });
+    </script>
 
 {% endblock %}

@@ -67,20 +67,22 @@ Craft::\$app->getView()->registerJsWithVars(fn(\$type) => <<<JS
             bulk: true,
     
             // Return whether the action should be available depending on which elements are selected
-            validateSelection: (selectedItems) {
+            validateSelection: (selectedItems, elementIndex) => {
               return true;
             },
     
             // Uncomment if the action should be handled by JavaScript:
-            // activate: () => {
-            //   Craft.elementIndex.setIndexBusy();
-            //   const ids = Craft.elementIndex.getSelectedElementIds();
+            // activate: (selectedItems, elementIndex) => {
+            //   elementIndex.setIndexBusy();
+            //   const ids = elementIndex.getSelectedElementIds();
             //   // ...
-            //   Craft.elementIndex.setIndexAvailable();
+            //   elementIndex.setIndexAvailable();
             // },
         });
     })();
 JS, [static::class]);
+
+return null;
 PHP,
             'performAction' => <<<PHP
 \$elements = \$query->all();

@@ -24,9 +24,10 @@ use yii\console\ExitCode;
 class UpController extends Controller
 {
     /**
-     * @var bool Whether to perform the action even if a mutex lock could not be acquired.
+     * @var bool Skip backing up the database.
+     * @since 4.5.8
      */
-    public bool $force = false;
+    public bool $noBackup = false;
 
     /**
      * @inheritdoc
@@ -39,7 +40,7 @@ class UpController extends Controller
     public function options($actionID): array
     {
         return array_merge(parent::options($actionID), [
-            'force',
+            'noBackup',
         ]);
     }
 
@@ -51,15 +52,24 @@ class UpController extends Controller
     public function actionIndex(): int
     {
         try {
-            $pendingChanges = Craft::$app->getProjectConfig()->areChangesPending();
+            $projectConfig = Craft::$app->getProjectConfig();
+            $pendingChanges = $projectConfig->areChangesPending(force: true);
+            $writeYamlAutomatically = $projectConfig->writeYamlAutomatically;
 
             // Craft + plugin migrations
-            $res = $this->run('migrate/all', ['noContent' => true]);
+            $res = $this->run('migrate/all', [
+                'noContent' => true,
+                'noBackup' => $this->noBackup,
+            ]);
             if ($res !== ExitCode::OK) {
                 $this->stderr("\nAborting remaining tasks.\n", Console::FG_YELLOW);
                 return $res;
             }
             $this->stdout("\n");
+
+            // Save and reset the project config
+            $projectConfig->saveModifiedConfigData();
+            $projectConfig->reset();
 
             // Project Config
             if ($pendingChanges) {
@@ -71,7 +81,9 @@ class UpController extends Controller
             }
 
             // Content migration
-            $res = $this->run('migrate/up', ['track' => MigrationManager::TRACK_CONTENT]);
+            $res = $this->run('migrate/up', [
+                'track' => MigrationManager::TRACK_CONTENT,
+            ]);
             if ($res !== ExitCode::OK) {
                 return $res;
             }
@@ -81,6 +93,10 @@ class UpController extends Controller
                 throw $e;
             }
             return ExitCode::UNSPECIFIED_ERROR;
+        }
+
+        if ($writeYamlAutomatically) {
+            $projectConfig->writeYamlFiles(true);
         }
 
         return ExitCode::OK;

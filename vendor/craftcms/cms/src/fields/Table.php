@@ -8,14 +8,16 @@
 namespace craft\fields;
 
 use Craft;
+use craft\base\CrossSiteCopyableFieldInterface;
 use craft\base\ElementInterface;
 use craft\base\Field;
 use craft\fields\data\ColorData;
 use craft\gql\GqlEntityRegistry;
-use craft\gql\types\generators\TableRowType as TableRowTypeGenerator;
+use craft\gql\types\generators\TableRowType;
 use craft\gql\types\TableRow;
 use craft\helpers\Cp;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\validators\ColorValidator;
@@ -35,7 +37,7 @@ use yii\validators\EmailValidator;
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
  * @since 3.0.0
  */
-class Table extends Field
+class Table extends Field implements CrossSiteCopyableFieldInterface
 {
     /**
      * @inheritdoc
@@ -48,9 +50,25 @@ class Table extends Field
     /**
      * @inheritdoc
      */
-    public static function valueType(): string
+    public static function icon(): string
+    {
+        return 'table';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function phpType(): string
     {
         return 'array|null';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function dbType(): array|string|null
+    {
+        return Schema::TYPE_JSON;
     }
 
     /**
@@ -91,17 +109,11 @@ class Table extends Field
     public ?array $defaults = [[]];
 
     /**
-     * @var string The type of database column the field should have in the content table
-     * @phpstan-var 'auto'|Schema::TYPE_STRING|Schema::TYPE_TEXT|'mediumtext'
-     */
-    public string $columnType = Schema::TYPE_TEXT;
-
-    /**
      * @inheritdoc
      */
     public function __construct($config = [])
     {
-        // Config normalization}
+        // Config normalization
         if (array_key_exists('columns', $config)) {
             if (!is_array($config['columns'])) {
                 unset($config['columns']);
@@ -148,6 +160,9 @@ class Table extends Field
                 }
             }
         }
+
+        // remove unused settings
+        unset($config['columnType']);
 
         parent::__construct($config);
     }
@@ -231,15 +246,20 @@ class Table extends Field
     /**
      * @inheritdoc
      */
-    public function getContentColumnType(): string
+    public function getSettingsHtml(): ?string
     {
-        return $this->columnType;
+        return $this->settingsHtml(false);
     }
 
     /**
      * @inheritdoc
      */
-    public function getSettingsHtml(): ?string
+    public function getReadOnlySettingsHtml(): ?string
+    {
+        return $this->settingsHtml(true);
+    }
+
+    private function settingsHtml(bool $readOnly): string
     {
         $typeOptions = [
             'checkbox' => Craft::t('app', 'Checkbox'),
@@ -344,6 +364,7 @@ class Table extends Field
             'cols' => $columnSettings,
             'rows' => $this->columns,
             'errors' => $this->getErrors('columns'),
+            'readOnly' => $readOnly,
         ]);
 
         $defaultsField = Cp::editableTableFieldHtml([
@@ -357,12 +378,14 @@ class Table extends Field
             'cols' => $columns,
             'rows' => $this->defaults,
             'initJs' => false,
+            'static' => $readOnly,
         ]);
 
         return $view->renderTemplate('_components/fieldtypes/Table/settings.twig', [
             'field' => $this,
             'columnsField' => $columnsField,
             'defaultsField' => $defaultsField,
+            'readOnly' => $readOnly,
         ]);
     }
 
@@ -377,7 +400,7 @@ class Table extends Field
     /**
      * @inheritdoc
      */
-    protected function inputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         Craft::$app->getView()->registerAssetBundle(TimepickerAsset::class);
         return $this->_getInputHtml($value, $element, false);
@@ -419,7 +442,7 @@ class Table extends Field
     /**
      * @inheritdoc
      */
-    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
         return $this->_normalizeValueInternal($value, $element, false);
     }
@@ -427,7 +450,7 @@ class Table extends Field
     /**
      * @inheritdoc
      */
-    public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element = null): mixed
+    public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
     {
         return $this->_normalizeValueInternal($value, $element, true);
     }
@@ -502,7 +525,43 @@ class Table extends Field
     /**
      * @inheritdoc
      */
-    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function serializeValue(mixed $value, ?ElementInterface $element): mixed
+    {
+        if (!is_array($value) || empty($this->columns)) {
+            return null;
+        }
+
+        $serialized = [];
+        $supportsMb4 = Craft::$app->getDb()->getSupportsMb4();
+
+        foreach ($value as $row) {
+            $serializedRow = [];
+            foreach ($this->columns as $colId => $column) {
+                if ($column['type'] === 'heading') {
+                    continue;
+                }
+
+                $value = $row[$colId];
+
+                if (is_string($value)) {
+                    $value = StringHelper::escapeShortcodes($value);
+                    if (!$supportsMb4) {
+                        $value = StringHelper::emojiToShortcodes($value);
+                    }
+                }
+
+                $serializedRow[$colId] = parent::serializeValue($value ?? null, null);
+            }
+            $serialized[] = $serializedRow;
+        }
+
+        return $serialized;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function serializeValueForDb(mixed $value, ElementInterface $element): mixed
     {
         if (!is_array($value) || empty($this->columns)) {
             return null;
@@ -524,7 +583,13 @@ class Table extends Field
                     $value = StringHelper::emojiToShortcodes(StringHelper::escapeShortcodes($value));
                 }
 
-                $serializedRow[$colId] = parent::serializeValue($value ?? null);
+                // can't call parent::serializeValueForDb() here because that calls $this->serializeValue()
+                // see https://github.com/craftcms/cms/pull/17091
+                if ($value instanceof DateTime || DateTimeHelper::isIso8601($value)) {
+                    $serializedRow[$colId] = Db::prepareDateForDb($value);
+                } else {
+                    $serializedRow[$colId] = parent::serializeValue($value, $element);
+                }
             }
             $serialized[] = $serializedRow;
         }
@@ -568,7 +633,7 @@ class Table extends Field
      */
     public function getContentGqlType(): Type|array
     {
-        $type = TableRowTypeGenerator::generateType($this);
+        $type = TableRowType::generateType($this);
         return Type::listOf($type);
     }
 
@@ -685,10 +750,15 @@ class Table extends Field
             return '';
         }
 
-        // Translate the column headings
+        // Translate the column headings and dropdown option labels
         foreach ($this->columns as &$column) {
             if (!empty($column['heading'])) {
                 $column['heading'] = Craft::t('site', $column['heading']);
+            }
+            if (!empty($column['options'])) {
+                array_walk($column['options'], function(&$option) {
+                    $option['label'] = Craft::t('site', $option['label']);
+                });
             }
         }
         unset($column);

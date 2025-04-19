@@ -110,6 +110,11 @@ class ImageTransformer extends Component implements ImageTransformerInterface, E
                     'transformId' => $index->id,
                 ]), 2048);
 
+                // Prevent the page from being cached
+                if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
+                    Craft::$app->getResponse()->setNoCacheHeaders();
+                }
+
                 // Return the temporary transform URL
                 return UrlHelper::actionUrl('assets/generate-transform', [
                     'transformId' => $index->id,
@@ -377,6 +382,7 @@ class ImageTransformer extends Component implements ImageTransformerInterface, E
             $this->storeTransformIndexData($index);
         }, $image);
 
+        // Fire a 'transformImage' event
         if ($this->hasEventHandlers(static::EVENT_TRANSFORM_IMAGE)) {
             $event = new ImageTransformerOperationEvent([
                 'asset' => $asset,
@@ -518,6 +524,10 @@ class ImageTransformer extends Component implements ImageTransformerInterface, E
             $query->andWhere(['format' => null]);
         } else {
             $query->andWhere(['format' => $transform->format]);
+        }
+
+        if ($transform->indexId !== null) {
+            $query->andWhere(['id' => $transform->indexId]);
         }
 
         $result = $query->one();
@@ -664,8 +674,14 @@ class ImageTransformer extends Component implements ImageTransformerInterface, E
     {
         $imageCopy = $asset->getCopyOfFile();
 
-        /** @var Raster $image */
-        $image = Craft::$app->getImages()->loadImage($imageCopy, true, max($asset->height, $asset->width));
+        if (FileHelper::isSvg($imageCopy)) {
+            $size = max($asset->width, $asset->height) ?? 1000;
+            /** @var Raster $image */
+            $image = Craft::$app->getImages()->loadImage($imageCopy, true, $size);
+        } else {
+            /** @var Raster $image */
+            $image = Craft::$app->getImages()->loadImage($imageCopy);
+        }
 
         // TODO Is this hacky? It seems hacky.
         // We're rasterizing SVG, we have to make sure that the filename change does not get lost
@@ -763,7 +779,7 @@ class ImageTransformer extends Component implements ImageTransformerInterface, E
      */
     protected function getTransformBasePath(Asset $asset): string
     {
-        $subPath = $asset->getVolume()->transformSubpath;
+        $subPath = $asset->getVolume()->getTransformSubpath();
         $subPath = StringHelper::removeRight($subPath, '/');
         return ($subPath ? $subPath . DIRECTORY_SEPARATOR : '') . $asset->folderPath;
     }

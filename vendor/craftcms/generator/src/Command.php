@@ -26,9 +26,9 @@ use yii\console\ExitCode;
 class Command extends Controller
 {
     /**
-     * @event RegisterComponentTypesEvent The event that is triggered when registering generator types.
+     * @event RegisterComponentTypesEvent The event that is triggered when registering generators.
      *
-     * Generator types must extend [[BaseGenerator]].
+     * Generators must extend [[BaseGenerator]].
      * ---
      * ```php
      * use craft\events\RegisterComponentTypesEvent;
@@ -38,7 +38,7 @@ class Command extends Controller
      * if (class_exists(Command::class)) {
      *     Event::on(
      *         Command::class,
-     *         Command::EVENT_REGISTER_GENERATOR_TYPES,
+     *         Command::EVENT_REGISTER_GENERATORS,
      *         function(RegisterComponentTypesEvent $event) {
      *             $event->types[] = MyGenerator::class;
      *         }
@@ -46,7 +46,7 @@ class Command extends Controller
      * }
      * ```
      */
-    public const EVENT_REGISTER_GENERATOR_TYPES = 'registerGeneratorTypes';
+    public const EVENT_REGISTER_GENERATORS = 'registerGenerators';
 
     /**
      * @inheritdoc
@@ -57,6 +57,12 @@ class Command extends Controller
      * @var bool Whether to add DocBlock comments to the generated class constants, properties, and methods.
      */
     public bool $withDocblocks = false;
+
+    /**
+     * @var bool Whether generated files should have `declare(strict_types=1)`.
+     * @since 1.7.0
+     */
+    public bool $withStrictTypes = false;
 
     /**
      * @var bool
@@ -86,6 +92,7 @@ class Command extends Controller
         // Don't include app/module/plugin since `module` conflicts with yii\base\Controller::$module
         return array_merge(parent::options($actionID), [
             'withDocblocks',
+            'withStrictTypes',
         ]);
     }
 
@@ -300,7 +307,7 @@ class Command extends Controller
         $event = new RegisterComponentTypesEvent([
             'types' => $types,
         ]);
-        $this->trigger(self::EVENT_REGISTER_GENERATOR_TYPES, $event);
+        $this->trigger(self::EVENT_REGISTER_GENERATORS, $event);
 
         return $event->types;
     }

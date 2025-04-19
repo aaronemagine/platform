@@ -10,8 +10,12 @@ namespace craft\elements\actions;
 use Craft;
 use craft\base\ElementAction;
 use craft\base\ElementInterface;
+use craft\base\NestedElementInterface;
+use craft\db\Table;
 use craft\elements\db\ElementQueryInterface;
+use craft\helpers\Db;
 use craft\helpers\Html;
+use craft\services\Elements;
 
 /**
  * Delete represents a Delete element action.
@@ -71,17 +75,24 @@ class Delete extends ElementAction implements DeleteActionInterface
         // Only enable for deletable elements, per canDelete()
         Craft::$app->getView()->registerJsWithVars(fn($type) => <<<JS
 (() => {
-    new Craft.ElementActionTrigger({
-        type: $type,
-        validateSelection: \$selectedItems => {
-            for (let i = 0; i < \$selectedItems.length; i++) {
-                if (!Garnish.hasAttr(\$selectedItems.eq(i).find('.element'), 'data-deletable')) {
-                    return false;
-                }
-            }
-            return true;
-        },
-    });
+  new Craft.ElementActionTrigger({
+    type: $type,
+    validateSelection: (selectedItems, elementIndex) => {
+      for (let i = 0; i < selectedItems.length; i++) {
+        if (!Garnish.hasAttr(selectedItems.eq(i).find('.element'), 'data-deletable')) {
+          return false;
+        }
+      }
+
+      return elementIndex.settings.canDeleteElements(selectedItems);
+    },
+    beforeActivate: async (selectedItems, elementIndex) => {
+      await elementIndex.settings.onBeforeDeleteElements(selectedItems);
+    },
+    afterActivate: async (selectedItems, elementIndex) => {
+      await elementIndex.settings.onDeleteElements(selectedItems);
+    },
+  });
 })();
 JS, [static::class]);
 
@@ -127,23 +138,20 @@ JS, [static::class]);
             return $this->confirmationMessage;
         }
 
-        /** @var ElementInterface|string $elementType */
-        $elementType = $this->elementType;
-
         if ($this->hard) {
             return Craft::t('app', 'Are you sure you want to permanently delete the selected {type}?', [
-                'type' => $elementType::pluralLowerDisplayName(),
+                'type' => $this->elementType::pluralLowerDisplayName(),
             ]);
         }
 
         if ($this->withDescendants) {
             return Craft::t('app', 'Are you sure you want to delete the selected {type} along with their descendants?', [
-                'type' => $elementType::pluralLowerDisplayName(),
+                'type' => $this->elementType::pluralLowerDisplayName(),
             ]);
         }
 
         return Craft::t('app', 'Are you sure you want to delete the selected {type}?', [
-            'type' => $elementType::pluralLowerDisplayName(),
+            'type' => $this->elementType::pluralLowerDisplayName(),
         ]);
     }
 
@@ -162,6 +170,7 @@ JS, [static::class]);
                         'descendants',
                         [
                             'orderBy' => ['structureelements.lft' => SORT_DESC],
+                            'status' => null,
                         ],
                     ],
                 ])
@@ -170,6 +179,8 @@ JS, [static::class]);
 
         $deletedElementIds = [];
         $user = Craft::$app->getUser()->getIdentity();
+
+        $deleteOwnership = [];
 
         foreach ($query->all() as $element) {
             if (!$elementsService->canView($element, $user) || !$elementsService->canDelete($element, $user)) {
@@ -183,26 +194,48 @@ JS, [static::class]);
                             $elementsService->canView($descendant, $user) &&
                             $elementsService->canDelete($descendant, $user)
                         ) {
-                            $elementsService->deleteElement($descendant, $this->hard);
+                            $this->deleteElement($descendant, $elementsService, $deleteOwnership);
                             $deletedElementIds[$descendant->id] = true;
                         }
                     }
                 }
-                $elementsService->deleteElement($element, $this->hard);
+                $this->deleteElement($element, $elementsService, $deleteOwnership);
                 $deletedElementIds[$element->id] = true;
             }
+        }
+
+        foreach ($deleteOwnership as $ownerId => $elementIds) {
+            Db::delete(Table::ELEMENTS_OWNERS, [
+                'elementId' => $elementIds,
+                'ownerId' => $ownerId,
+            ]);
         }
 
         if (isset($this->successMessage)) {
             $this->setMessage($this->successMessage);
         } else {
-            /** @var ElementInterface|string $elementType */
-            $elementType = $this->elementType;
             $this->setMessage(Craft::t('app', '{type} deleted.', [
-                'type' => $elementType::pluralDisplayName(),
+                'type' => $this->elementType::pluralDisplayName(),
             ]));
         }
 
         return true;
+    }
+
+    private function deleteElement(
+        ElementInterface $element,
+        Elements $elementsService,
+        array &$deleteOwnership,
+    ): void {
+        // If the element primarily belongs to a different element, (and we're not hard deleting) just delete the ownership
+        if (!$this->hard && $element instanceof NestedElementInterface) {
+            $ownerId = $element->getOwnerId();
+            if ($ownerId && $element->getPrimaryOwnerId() !== $ownerId) {
+                $deleteOwnership[$ownerId][] = $element->id;
+                return;
+            }
+        }
+
+        $elementsService->deleteElement($element, $this->hard);
     }
 }

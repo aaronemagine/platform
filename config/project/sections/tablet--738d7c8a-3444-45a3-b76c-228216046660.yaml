@@ -1,6 +1,11 @@
 defaultPlacement: end
 enableVersioning: true
+entryTypes:
+  -
+    handle: default
+    uid: e57d07b6-2e83-4220-9f88-22aaf1cf9ad0 # Default
 handle: tablet
+maxAuthors: 1
 name: Tablet
 previewTargets:
   -

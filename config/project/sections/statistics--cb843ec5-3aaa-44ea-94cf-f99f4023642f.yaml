@@ -1,6 +1,11 @@
 defaultPlacement: end
 enableVersioning: true
+entryTypes:
+  -
+    handle: default
+    uid: df793da0-9723-422b-a370-2e9c303381d0 # Default
 handle: statistics
+maxAuthors: 1
 name: Statistics
 previewTargets:
   -

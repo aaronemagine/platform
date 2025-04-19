@@ -1,9 +1,0 @@
-baseUrl: '@web/fr/'
-enabled: '1'
-handle: fr
-hasUrls: true
-language: fr
-name: 'Emagine Analytic FR'
-primary: false
-siteGroup: 3226293d-1172-4808-9dfa-adbbb8120257 # Emagine VR Analytics
-sortOrder: 2

@@ -4,6 +4,7 @@ namespace emagine\emstats\models;
 
 use Craft;
 use craft\base\Model;
+use craft\behaviors\AttributeTypecastBehavior;
 
 /**
  * Em Stats settings

@@ -1,6 +1,5 @@
 columnSuffix: odumgdut
 contentColumnType: 'decimal(12,2)'
-fieldGroup: cfe8b169-e903-42f6-92ac-f4af56aa1ab8 # Venues
 handle: venueTicketPrice
 instructions: null
 name: 'Venue Ticket Price'

@@ -1,151 +1,113 @@
 <?php
+/**
+ * EmStats—main plugin class
+ */
+
+declare(strict_types=1);
 
 namespace emagine\emstats;
 
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
-use craft\web\twig\variables\CraftVariable;
-use emagine\emstats\models\Settings;
-use emagine\emstats\variables\StatsVariable;
-use craft\web\UrlManager;
 use craft\events\RegisterUrlRulesEvent;
+use craft\web\UrlManager;
+use craft\web\Application;
+use craft\web\twig\variables\CraftVariable;
 use yii\base\Event;
-use emagine\emstats\EmStats;
+use emagine\emstats\models\Settings;
+use emagine\emstats\services\StatsService;
+use emagine\emstats\variables\StatsVariable;
+
+
 
 /**
- * Em Stats plugin
+ * Class EmStats
  *
- * @method static EmStats getInstance()
- * @method Settings getSettings()
+ * @property-read Settings $settings
  */
-
-
-class EmStats extends Plugin
+final class EmStats extends Plugin
 {
-    /** @var string The plugin’s schema version number */
-    public string $schemaVersion = '1.0.0';
+    /** @var self Static reference to this plugin */
+    public static EmStats $plugin;
 
-    /** @var bool Whether the plugin has a settings page in the control panel */
-    public bool $hasCpSettings = true;
-
-    /**
-     * Returns the base config that the plugin should be instantiated with.
-     *
-     * It is recommended that plugins define their internal components from here:
-     *
-     * ```php
-     * public static function config(): array
-     * {
-     *     return [
-     *         'components' => [
-     *             'myComponent' => ['class' => MyComponent::class],
-     *             // ...
-     *         ],
-     *     ];
-     * }
-     * ```
-     *
-     * Doing that enables projects to customize the components as needed, by
-     * overriding `\craft\services\Plugins::$pluginConfigs` in `config/app.php`:
-     *
-     * ```php
-     * return [
-     *     'components' => [
-     *         'plugins' => [
-     *             'pluginConfigs' => [
-     *                 'my-plugin' => [
-     *                     'components' => [
-     *                         'myComponent' => [
-     *                             'myProperty' => 'foo',
-     *                             // ...
-     *                         ],
-     *                     ],
-     *                 ],
-     *             ],
-     *         ],
-     *     ],
-     * ];
-     * ```
-     *
-     * The resulting config will be passed to `\Craft::createObject()` to instantiate the plugin.
-     *
-     * @return array
-     */
-    public static function config(): array
-    {
-        return [
-            'components' => [
-                // Define component configs here...
-            ],
-        ];
-    }
-
-    /**
-     * Initializes the module.
-     *
-     * This method is called after the module is created and initialized with property values
-     * given in configuration. The default implementation will initialize [[controllerNamespace]]
-     * if it is not set.
-     *
-     * If you override this method, please make sure you call the parent implementation.
-     */
+    /** @inheritdoc */
     public function init(): void
     {
         parent::init();
-        
+        self::$plugin = $this;
+
+        // 🔹 Register the StatsService component so $this->statsService exists
+        $this->setComponents([
+            'statsService' => StatsService::class,
+        ]);
+
+        // 1.  Register site & CP URL rules ----------------------------------
         Event::on(
             UrlManager::class,
             UrlManager::EVENT_REGISTER_SITE_URL_RULES,
-            function(RegisterUrlRulesEvent $event) {
+            static function (RegisterUrlRulesEvent $event) {
                 $event->rules['em-stats/handle-form'] = 'em-stats/settings/handle-form';
             }
         );
 
-        // Defer most setup tasks until Craft is fully initialized
-        Craft::$app->onInit(function() {
-            $this->attachEventHandlers();
+        // 2.  Defer heavy boot‑strapping until Craft is fully initialised ----
+        Event::on(
+            Application::class,
+            Application::EVENT_INIT,
+            function () {
+                $this->attachEventHandlers();
 
-            // Register the variable
-            Event::on(
-                CraftVariable::class,
-                CraftVariable::EVENT_INIT,
-                function (Event $event) {
-                    /** @var CraftVariable $variable */
-                    $variable = $event->sender;
-                    // Attach the StatsVariable to the 'emstats' handle
-                    $variable->set('emstats', StatsVariable::class);
-                }
-            );
-        });
+                // Expose “emstats” variable to Twig
+                Event::on(
+                    CraftVariable::class,
+                    CraftVariable::EVENT_INIT,
+                    static fn(Event $e) => $e->sender->set('emstats', StatsVariable::class),
+                );
+            }
+        );
     }
 
-    /**
-     * Creates and returns the model used to store the plugin’s settings.
-     *
-     * @return Model|null
-     */
+    /* -------------------------------------------------------------------- */
+    /*  Convenience getters                                                 */
+    /* -------------------------------------------------------------------- */
+
+    public function getStatsService(): StatsService
+    {
+        /** @var StatsService $service */
+        return $this->get('statsService');
+    }
+
+    // ---------------------------------------------------------------------
+    // Settings
+    // ---------------------------------------------------------------------
+
+    /** @inheritdoc */
     protected function createSettingsModel(): ?Model
     {
         return Craft::createObject(Settings::class);
     }
 
-    /**
-     * Returns the rendered settings HTML, which will be inserted into the content block on the settings page.
-     *
-     * @return string|null The rendered settings HTML
-     */
+    /** @inheritdoc */
     protected function settingsHtml(): ?string
     {
-        return Craft::$app->view->renderTemplate('_em-stats/_settings.twig', [
-            'plugin' => $this,
-            'settings' => $this->getSettings(),
-        ]);
+        return Craft::$app->getView()->renderTemplate(
+            '_em-stats/_settings.twig',
+            [
+                'plugin'   => $this,
+                'settings' => $this->getSettings(),
+            ],
+        );
     }
 
+    // ---------------------------------------------------------------------
+    // Internal helpers
+    // ---------------------------------------------------------------------
+
+    /** Attach any additional event handlers here. */
     private function attachEventHandlers(): void
     {
-        // Register event handlers here ...
-        // (see https://craftcms.com/docs/4.x/extend/events.html to get started)
+        // Example:
+        // Event::on(Entry::class, Entry::EVENT_AFTER_SAVE, fn() => Craft::info('Entry saved', __METHOD__));
     }
 }

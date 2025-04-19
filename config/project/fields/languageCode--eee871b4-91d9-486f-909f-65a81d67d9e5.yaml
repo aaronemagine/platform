@@ -1,6 +1,5 @@
 columnSuffix: gtssgjsc
 contentColumnType: string(8)
-fieldGroup: 31ed83ba-e7df-4d8f-9233-992355d54e5c # Language
 handle: languageCode
 instructions: null
 name: 'language code'

@@ -15,7 +15,8 @@ use Twig\Node\Node;
 use Twig\Template;
 
 /**
- * GetAttrNode is an alternative to [[\Twig\Node\Expression\GetAttrExpression]], which sends attribute calls to [[TemplateHelper::attribute()]] rather than twig_get_attribute().
+ * GetAttrNode is an alternative to [[\Twig\Node\Expression\GetAttrExpression]], which sends attribute calls to
+ * [[TemplateHelper::attribute()]] rather than CoreExtension::getAttribute().
  *
  * @author Pixel & Tonic, Inc. <support@pixelandtonic.com>
  * @since 3.0.0
@@ -26,13 +27,12 @@ class GetAttrNode extends GetAttrExpression
      * @param array $nodes An array of named nodes
      * @param array $attributes An array of attributes (should not be nodes)
      * @param int $lineno The line number
-     * @param string|null $tag The tag name associated with the Node
      * @noinspection PhpMissingParentConstructorInspection
      */
-    public function __construct(array $nodes = [], array $attributes = [], int $lineno = 0, ?string $tag = null)
+    public function __construct(array $nodes = [], array $attributes = [], int $lineno = 0)
     {
         // Skip parent::__construct()
-        Node::__construct($nodes, $attributes, $lineno, $tag);
+        Node::__construct($nodes, $attributes, $lineno);
     }
 
     /**
@@ -61,7 +61,8 @@ class GetAttrNode extends GetAttrExpression
                 ->raw($var)
                 ->raw('[')
                 ->subcompile($this->getNode('attribute'))
-                ->raw('] ?? null) : null)');
+                ->raw('] ?? null) : null)')
+            ;
 
             return;
         }
@@ -73,41 +74,25 @@ class GetAttrNode extends GetAttrExpression
             $this->getNode('node')->setAttribute('ignore_strict_check', true);
         }
 
-        $compiler->subcompile($this->getNode('node'));
+        $compiler
+            ->subcompile($this->getNode('node'))
+            ->raw(', ')
+            ->subcompile($this->getNode('attribute'))
+        ;
 
-        $compiler->raw(', ')->subcompile($this->getNode('attribute'));
-
-        // only generate optional arguments when needed (to make generated code more readable)
-        $needFifth = $env->hasExtension(SandboxExtension::class);
-        $needFourth = $needFifth || $this->getAttribute('ignore_strict_check');
-        $needThird = $needFourth || $this->getAttribute('is_defined_test');
-        $needSecond = $needThird || Template::ANY_CALL !== $this->getAttribute('type');
-        $needFirst = $needSecond || $this->hasNode('arguments');
-
-        if ($needFirst) {
-            if ($this->hasNode('arguments')) {
-                $compiler->raw(', ')->subcompile($this->getNode('arguments'));
-            } else {
-                $compiler->raw(', []');
-            }
+        if ($this->hasNode('arguments')) {
+            $compiler->raw(', ')->subcompile($this->getNode('arguments'));
+        } else {
+            $compiler->raw(', []');
         }
 
-        if ($needSecond) {
-            $compiler->raw(', ')->repr($this->getAttribute('type'));
-        }
-
-        if ($needThird) {
-            $compiler->raw(', ')->repr($this->getAttribute('is_defined_test'));
-        }
-
-        if ($needFourth) {
-            $compiler->raw(', ')->repr($this->getAttribute('ignore_strict_check'));
-        }
-
-        if ($needFifth) {
-            $compiler->raw(', ')->repr($env->hasExtension(SandboxExtension::class));
-        }
-
-        $compiler->raw(')');
+        $compiler->raw(', ')
+            ->repr($this->getAttribute('type'))
+            ->raw(', ')->repr($this->getAttribute('is_defined_test'))
+            ->raw(', ')->repr($this->getAttribute('ignore_strict_check'))
+            ->raw(', ')->repr($env->hasExtension(SandboxExtension::class))
+            ->raw(', ')->repr($this->getNode('node')->getTemplateLine())
+            ->raw(')')
+        ;
     }
 }

@@ -1,6 +1,5 @@
 columnSuffix: null
 contentColumnType: string
-fieldGroup: eb0db3a1-ef42-4db3-9257-bc4574b57570 # headset
 handle: movies
 instructions: 'Pick the movie(s) you want to download on this headset'
 name: Movies

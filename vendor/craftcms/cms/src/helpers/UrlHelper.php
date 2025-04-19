@@ -8,7 +8,9 @@
 namespace craft\helpers;
 
 use Craft;
+use craft\console\Request as ConsoleRequest;
 use craft\errors\SiteNotFoundException;
+use craft\web\Request as WebRequest;
 use yii\base\Exception;
 
 /**
@@ -27,7 +29,19 @@ class UrlHelper
      */
     public static function isAbsoluteUrl(string $url): bool
     {
-        return (str_starts_with($url, 'http://') || str_starts_with($url, 'https://'));
+        // From https://developer.apple.com/documentation/webkit/wkwebviewconfiguration/2875766-seturlschemehandler:
+        // > Scheme names are case sensitive, must start with an ASCII letter, and may contain only ASCII letters,
+        // > numbers, the “+” character, the “-” character, and the “.” character.
+        if (!preg_match('/^[a-z][a-z0-9+-.]*:/i', $url)) {
+            return false;
+        }
+
+        // Make sure it's not a Windows file path
+        if (preg_match('/^[a-z]:(?:$|\\\)/i', $url)) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -65,6 +79,8 @@ class UrlHelper
 
     /**
      * Returns a query string based on the given params.
+     *
+     * Param values will be encoded, except for `/`, `{`, and `}` characters.
      *
      * @param array $params
      * @return string
@@ -112,7 +128,7 @@ class UrlHelper
 
         // Combine them
         $params = array_merge($baseParams, $params);
-        $fragment = $fragment ?? $baseFragment;
+        $fragment ??= $baseFragment;
 
         // Append to the base URL and return
         if (($query = static::buildQuery($params)) !== '') {
@@ -195,7 +211,7 @@ class UrlHelper
     }
 
     /**
-     * Encodes a URL’s query string params.
+     * Encodes a URL’s query string param values, except for `/`, `{`, and `}` characters.
      *
      * @param string $url
      * @return string
@@ -205,6 +221,27 @@ class UrlHelper
     {
         [$url, $params, $fragment] = self::_extractParams($url);
         return self::_buildUrl($url, $params, $fragment);
+    }
+
+    /**
+     * Encodes non-alphanumeric characters in a URL, except reserved characters and already-encoded characters.
+     *
+     * @param string $url
+     * @return string
+     * @since 5.5.0
+     */
+    public static function encodeUrl(string $url): string
+    {
+        $parts = preg_split('/([:\/?#\[\]@!$&\'()*+,;=%])/', $url, flags: PREG_SPLIT_DELIM_CAPTURE);
+        $url = '';
+        foreach ($parts as $i => $part) {
+            if ($i % 2 === 0) {
+                $url .= urlencode($part);
+            } else {
+                $url .= $part;
+            }
+        }
+        return $url;
     }
 
     /**
@@ -269,7 +306,7 @@ class UrlHelper
             $scheme = 'https';
         }
 
-        return self::_createUrl($path, $params, $scheme, $cpUrl, $showScriptName);
+        return self::_createUrl($path, $params, $scheme, $cpUrl, showScriptName: $showScriptName);
     }
 
     /**
@@ -379,7 +416,7 @@ class UrlHelper
             $showScriptName = (bool)$generalConfig->pathParam;
         }
 
-        return self::_createUrl($path, $params, $scheme, $cpUrl, $showScriptName, false);
+        return self::_createUrl($path, $params, $scheme, $cpUrl, true, $showScriptName, false);
     }
 
     /**
@@ -492,8 +529,17 @@ class UrlHelper
             return rtrim($generalConfig->baseCpUrl, '/') . '/';
         }
 
-        // Use @web as a fallback
-        return Craft::getAlias('@web');
+        return self::fallbackBaseUrl();
+    }
+
+    private static function fallbackBaseUrl(WebRequest|ConsoleRequest|null $request = null): string
+    {
+        $request ??= Craft::$app->getRequest();
+        // Use @web as a fallback, unless it's a console request and @web was defined dynamically,
+        // in which case it's totally unreliable so go with the base site URL
+        return $request->getIsConsoleRequest() && $request->isWebAliasSetDynamically
+            ? static::baseSiteUrl()
+            : Craft::getAlias('@web');
     }
 
     /**
@@ -579,8 +625,15 @@ class UrlHelper
      * @param bool $addToken
      * @return string
      */
-    private static function _createUrl(string $path, array|string|null $params, ?string $scheme, bool $cpUrl, ?bool $showScriptName = null, bool $addToken = true): string
-    {
+    private static function _createUrl(
+        string $path,
+        array|string|null $params,
+        ?string $scheme,
+        bool $cpUrl,
+        bool $useRequestHostInfo = false,
+        ?bool $showScriptName = null,
+        bool $addToken = true,
+    ): string {
         // Extract any params/fragment from the path
         [$path, $baseParams, $baseFragment] = self::_extractParams($path);
 
@@ -589,7 +642,7 @@ class UrlHelper
 
         // Combine them
         $params = array_merge($baseParams, $params);
-        $fragment = $fragment ?? $baseFragment;
+        $fragment ??= $baseFragment;
 
         $generalConfig = Craft::$app->getConfig()->getGeneral();
         $request = Craft::$app->getRequest();
@@ -600,12 +653,25 @@ class UrlHelper
                 $params['site'] = Cp::requestedSite()->handle;
             }
         } else {
-            // token/siteToken params
-            if ($addToken && !isset($params[$generalConfig->tokenParam]) && ($token = $request->getToken()) !== null) {
-                $params[$generalConfig->tokenParam] = $token;
-            }
+            // token/siteToken/preview params
             if (!isset($params[$generalConfig->siteToken]) && ($siteToken = $request->getSiteToken()) !== null) {
                 $params[$generalConfig->siteToken] = $siteToken;
+            }
+            if ($request->getIsSiteRequest()) {
+                if ($addToken && !isset($params[$generalConfig->tokenParam]) && ($token = $request->getToken()) !== null) {
+                    $params[$generalConfig->tokenParam] = $token;
+                }
+                if (
+                    !isset($params['x-craft-preview']) &&
+                    !isset($params['x-craft-live-preview']) &&
+                    $request->getIsPreview()
+                ) {
+                    if (($previewToken = $request->getQueryParam('x-craft-preview')) !== null) {
+                        $params['x-craft-preview'] = $previewToken;
+                    } elseif (($previewToken = $request->getQueryParam('x-craft-live-preview')) !== null) {
+                        $params['x-craft-live-preview'] = $previewToken;
+                    }
+                }
             }
         }
 
@@ -613,20 +679,21 @@ class UrlHelper
             $showScriptName = !$generalConfig->omitScriptNameInUrls;
         }
 
-        // If we must show the script name, then just start with the script URL,
-        // regardless of whether this is a control panel or site request, as we can't assume
-        // that index.php lives within the base URL anymore.
-        if ($showScriptName) {
-            if ($request->getIsConsoleRequest()) {
-                // No way to know for sure, so just guess
-                $baseUrl = '/index.php';
-            } else {
-                $baseUrl = static::host() . $request->getScriptUrl();
-            }
+        if ($useRequestHostInfo) {
+            $baseUrl = self::fallbackBaseUrl($request);
+        } elseif ($showScriptName) {
+            $baseUrl = $request->getIsConsoleRequest() ? '/' : static::host();
         } elseif ($cpUrl) {
             $baseUrl = static::baseCpUrl();
         } else {
             $baseUrl = static::baseSiteUrl();
+        }
+
+        if ($showScriptName) {
+            $baseUrl = sprintf('%s/%s',
+                rtrim($baseUrl, '/'),
+                ($request->getIsConsoleRequest() ? 'index.php' : basename($request->getScriptUrl())),
+            );
         }
 
         if ($scheme === null && !static::isAbsoluteUrl($baseUrl)) {

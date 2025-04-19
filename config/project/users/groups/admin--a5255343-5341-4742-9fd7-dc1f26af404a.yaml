@@ -10,15 +10,27 @@ permissions:
   - 'assignusergroup:a5255343-5341-4742-9fd7-dc1f26af404a' # Admin
   - assignuserpermissions
   - 'createentries:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'createentries:394fd145-7cff-4ee6-be0a-bf15e22ffbb5' # Languages
+  - 'createentries:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'createentries:b3e8c798-1f09-4ca2-ac30-695d0273d094' # Movies
   - 'createentries:cb843ec5-3aaa-44ea-94cf-f99f4023642f' # Statistics
   - 'createentries:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
   - 'deleteentries:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'deleteentries:394fd145-7cff-4ee6-be0a-bf15e22ffbb5' # Languages
+  - 'deleteentries:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'deleteentries:b3e8c798-1f09-4ca2-ac30-695d0273d094' # Movies
   - 'deleteentries:cb843ec5-3aaa-44ea-94cf-f99f4023642f' # Statistics
   - 'deleteentries:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
   - 'deletepeerentries:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'deletepeerentries:394fd145-7cff-4ee6-be0a-bf15e22ffbb5' # Languages
+  - 'deletepeerentries:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'deletepeerentries:b3e8c798-1f09-4ca2-ac30-695d0273d094' # Movies
   - 'deletepeerentries:cb843ec5-3aaa-44ea-94cf-f99f4023642f' # Statistics
   - 'deletepeerentries:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
   - 'deletepeerentrydrafts:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'deletepeerentrydrafts:394fd145-7cff-4ee6-be0a-bf15e22ffbb5' # Languages
+  - 'deletepeerentrydrafts:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'deletepeerentrydrafts:b3e8c798-1f09-4ca2-ac30-695d0273d094' # Movies
   - 'deletepeerentrydrafts:cb843ec5-3aaa-44ea-94cf-f99f4023642f' # Statistics
   - 'deletepeerentrydrafts:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
   - deleteusers
@@ -28,12 +40,21 @@ permissions:
   - performupdates
   - registerusers
   - 'saveentries:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'saveentries:394fd145-7cff-4ee6-be0a-bf15e22ffbb5' # Languages
+  - 'saveentries:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'saveentries:b3e8c798-1f09-4ca2-ac30-695d0273d094' # Movies
   - 'saveentries:cb843ec5-3aaa-44ea-94cf-f99f4023642f' # Statistics
   - 'saveentries:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
   - 'savepeerentries:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'savepeerentries:394fd145-7cff-4ee6-be0a-bf15e22ffbb5' # Languages
+  - 'savepeerentries:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'savepeerentries:b3e8c798-1f09-4ca2-ac30-695d0273d094' # Movies
   - 'savepeerentries:cb843ec5-3aaa-44ea-94cf-f99f4023642f' # Statistics
   - 'savepeerentries:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
   - 'savepeerentrydrafts:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'savepeerentrydrafts:394fd145-7cff-4ee6-be0a-bf15e22ffbb5' # Languages
+  - 'savepeerentrydrafts:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'savepeerentrydrafts:b3e8c798-1f09-4ca2-ac30-695d0273d094' # Movies
   - 'savepeerentrydrafts:cb843ec5-3aaa-44ea-94cf-f99f4023642f' # Statistics
   - 'savepeerentrydrafts:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
   - 'utility:clear-caches'
@@ -47,11 +68,21 @@ permissions:
   - 'utility:system-report'
   - 'utility:updates'
   - 'viewentries:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'viewentries:394fd145-7cff-4ee6-be0a-bf15e22ffbb5' # Languages
+  - 'viewentries:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'viewentries:b3e8c798-1f09-4ca2-ac30-695d0273d094' # Movies
   - 'viewentries:cb843ec5-3aaa-44ea-94cf-f99f4023642f' # Statistics
   - 'viewentries:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
   - 'viewpeerentries:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'viewpeerentries:394fd145-7cff-4ee6-be0a-bf15e22ffbb5' # Languages
+  - 'viewpeerentries:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'viewpeerentries:b3e8c798-1f09-4ca2-ac30-695d0273d094' # Movies
   - 'viewpeerentries:cb843ec5-3aaa-44ea-94cf-f99f4023642f' # Statistics
   - 'viewpeerentries:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
   - 'viewpeerentrydrafts:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
+  - 'viewpeerentrydrafts:394fd145-7cff-4ee6-be0a-bf15e22ffbb5' # Languages
+  - 'viewpeerentrydrafts:738d7c8a-3444-45a3-b76c-228216046660' # Tablet
+  - 'viewpeerentrydrafts:b3e8c798-1f09-4ca2-ac30-695d0273d094' # Movies
   - 'viewpeerentrydrafts:cb843ec5-3aaa-44ea-94cf-f99f4023642f' # Statistics
   - 'viewpeerentrydrafts:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
+  - viewusers

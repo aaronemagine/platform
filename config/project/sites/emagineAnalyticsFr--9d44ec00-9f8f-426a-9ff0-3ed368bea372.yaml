@@ -1,0 +1,9 @@
+baseUrl: '@web/fr/'
+enabled: '1'
+handle: emagineAnalyticsFr
+hasUrls: true
+language: fr
+name: 'Emagine Analytics FR'
+primary: false
+siteGroup: 3226293d-1172-4808-9dfa-adbbb8120257 # Emagine VR Analytics
+sortOrder: 2

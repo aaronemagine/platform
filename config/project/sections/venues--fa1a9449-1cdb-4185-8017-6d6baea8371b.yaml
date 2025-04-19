@@ -1,6 +1,11 @@
 defaultPlacement: end
 enableVersioning: true
+entryTypes:
+  -
+    handle: default
+    uid: 6e395cf4-c9ab-4960-8c68-62b6bbcf4714 # Default
 handle: venues
+maxAuthors: 1
 name: Venues
 previewTargets:
   -

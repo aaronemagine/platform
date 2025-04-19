@@ -7,12 +7,13 @@
 
 namespace craft\controllers;
 
-use Composer\IO\BufferIO;
 use Composer\Semver\Comparator;
-use Composer\Semver\VersionParser;
 use Craft;
 use craft\errors\InvalidPluginException;
+use craft\helpers\App;
+use craft\helpers\FileHelper;
 use RequirementsChecker;
+use Symfony\Component\Process\Process;
 use Throwable;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
@@ -99,8 +100,13 @@ class UpdaterController extends BaseUpdaterController
      */
     public function actionRestoreDb(): Response
     {
+        $backupPath = $this->data['dbBackupPath'];
+        if (!file_exists($backupPath) || !FileHelper::isWithin($backupPath, Craft::$app->getPath()->getDbBackupPath())) {
+            throw new BadRequestHttpException("Invalid backup path: $backupPath");
+        }
+
         try {
-            Craft::$app->getDb()->restore($this->data['dbBackupPath']);
+            Craft::$app->getDb()->restore($backupPath);
         } catch (Throwable $e) {
             Craft::error('Error restoring up the database: ' . $e->getMessage(), __METHOD__);
             return $this->send([
@@ -129,15 +135,19 @@ class UpdaterController extends BaseUpdaterController
      */
     public function actionRevert(): Response
     {
-        $io = new BufferIO();
+        $output = '';
 
         try {
-            Craft::$app->getComposer()->install($this->data['current'], $io);
-            Craft::info("Reverted Composer requirements.\nOutput: " . $io->getOutput(), __METHOD__);
+            Craft::$app->getComposer()->install($this->data['current'], function($type, $buffer) use (&$output) {
+                if ($type === Process::OUT) {
+                    $output .= $buffer;
+                }
+            });
+            Craft::info("Reverted Composer requirements.\nOutput: $output", __METHOD__);
             $this->data['reverted'] = true;
         } catch (Throwable $e) {
-            Craft::error('Error reverting Composer requirements: ' . $e->getMessage() . "\nOutput: " . $io->getOutput(), __METHOD__);
-            return $this->sendComposerError(Craft::t('app', 'Composer was unable to revert the updates.'), $e, $io->getOutput());
+            Craft::error('Error reverting Composer requirements: ' . $e->getMessage() . "\nOutput: $output", __METHOD__);
+            return $this->sendComposerError(Craft::t('app', 'Composer was unable to revert the updates.'), $e, $output);
         }
 
         return $this->send($this->postComposerInstallState());
@@ -404,9 +414,8 @@ class UpdaterController extends BaseUpdaterController
         }
 
         // Normalize the versions in case only one of them starts with a 'v' or something
-        $vp = new VersionParser();
-        $toVersion = $vp->normalize($toVersion);
-        $fromVersion = $vp->normalize($fromVersion);
+        $toVersion = App::normalizeVersion($toVersion);
+        $fromVersion = App::normalizeVersion($fromVersion);
 
         return Comparator::greaterThan($toVersion, $fromVersion);
     }

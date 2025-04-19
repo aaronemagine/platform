@@ -2,24 +2,16 @@ isPublic: false
 name: 'Stats Schema'
 scope:
   - 'sites.f957802c-8f19-44d3-a30a-668d452862ac:read' # Emagine VR Analytics
-  - 'sections.38875b9f-df2c-41e6-a1a2-e9d4ed370735:read' # Headsets
-  - 'entrytypes.17e706db-ccd3-4eab-9d3a-e8e5fed9d10a:read' # Default
-  - 'sections.394fd145-7cff-4ee6-be0a-bf15e22ffbb5:read' # Languages
-  - 'entrytypes.1a26c486-8723-402a-a398-68b766f2d163:read' # Default
-  - 'sections.b3e8c798-1f09-4ca2-ac30-695d0273d094:read' # Movies
-  - 'entrytypes.a7b7e1ba-7fb3-4258-8a31-c45adeaf82b8:read' # Default
-  - 'sections.cb843ec5-3aaa-44ea-94cf-f99f4023642f:read' # Statistics
-  - 'entrytypes.df793da0-9723-422b-a370-2e9c303381d0:read' # Default
-  - 'sections.738d7c8a-3444-45a3-b76c-228216046660:read' # Tablet
-  - 'entrytypes.e57d07b6-2e83-4220-9f88-22aaf1cf9ad0:read' # Default
-  - 'sections.fa1a9449-1cdb-4185-8017-6d6baea8371b:read' # Venues
-  - 'entrytypes.6e395cf4-c9ab-4960-8c68-62b6bbcf4714:read' # Default
   - 'usergroups.32c28836-80b3-4da9-a427-6d42b223613b:read' # Clients
   - 'sections.38875b9f-df2c-41e6-a1a2-e9d4ed370735:edit' # Headsets
-  - 'entrytypes.17e706db-ccd3-4eab-9d3a-e8e5fed9d10a:edit' # Default
-  - 'entrytypes.17e706db-ccd3-4eab-9d3a-e8e5fed9d10a:create' # Default
-  - 'entrytypes.17e706db-ccd3-4eab-9d3a-e8e5fed9d10a:save' # Default
   - 'sections.cb843ec5-3aaa-44ea-94cf-f99f4023642f:edit' # Statistics
-  - 'entrytypes.df793da0-9723-422b-a370-2e9c303381d0:edit' # Default
-  - 'entrytypes.df793da0-9723-422b-a370-2e9c303381d0:create' # Default
-  - 'entrytypes.df793da0-9723-422b-a370-2e9c303381d0:save' # Default
+  - 'sections.394fd145-7cff-4ee6-be0a-bf15e22ffbb5:read' # Languages
+  - 'sections.738d7c8a-3444-45a3-b76c-228216046660:read' # Tablet
+  - 'sections.38875b9f-df2c-41e6-a1a2-e9d4ed370735:read' # Headsets
+  - 'sections.38875b9f-df2c-41e6-a1a2-e9d4ed370735:create' # Headsets
+  - 'sections.38875b9f-df2c-41e6-a1a2-e9d4ed370735:save' # Headsets
+  - 'sections.b3e8c798-1f09-4ca2-ac30-695d0273d094:read' # Movies
+  - 'sections.cb843ec5-3aaa-44ea-94cf-f99f4023642f:read' # Statistics
+  - 'sections.cb843ec5-3aaa-44ea-94cf-f99f4023642f:create' # Statistics
+  - 'sections.cb843ec5-3aaa-44ea-94cf-f99f4023642f:save' # Statistics
+  - 'sections.fa1a9449-1cdb-4185-8017-6d6baea8371b:read' # Venues

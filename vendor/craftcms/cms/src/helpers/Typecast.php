@@ -28,6 +28,7 @@ final class Typecast
     private const TYPE_FLOAT = 'float';
     private const TYPE_INT = 'int';
     private const TYPE_INT_FLOAT = 'int|float';
+    private const TYPE_INT_STRING = 'int|string';
     private const TYPE_STRING = 'string';
     private const TYPE_ARRAY = 'array';
     private const TYPE_NULL = 'null';
@@ -38,8 +39,7 @@ final class Typecast
     /**
      * Typecasts the given property values based on their type declarations.
      *
-     * @param string $class The class name
-     * @phpstan-param class-string $class
+     * @param class-string $class The class name
      * @param array $properties The property values
      */
     public static function properties(string $class, array &$properties): void
@@ -52,8 +52,7 @@ final class Typecast
     /**
      * Typecasts the given property value based on its type declaration.
      *
-     * @param string $class The class name
-     * @phpstan-param class-string $class
+     * @param class-string $class The class name
      * @param string $property The property name
      * @param mixed $value The property value
      */
@@ -76,14 +75,16 @@ final class Typecast
             case self::TYPE_FLOAT:
             case self::TYPE_INT:
             case self::TYPE_INT_FLOAT:
+            case self::TYPE_INT_STRING:
             case self::TYPE_STRING:
                 if ($value === null || is_scalar($value)) {
-                    /** @phpstan-var self::TYPE_BOOL|self::TYPE_FLOAT|self::TYPE_INT|self::TYPE_INT_FLOAT|self::TYPE_STRING $typeName */
+                    /** @phpstan-var self::TYPE_BOOL|self::TYPE_FLOAT|self::TYPE_INT|self::TYPE_INT_FLOAT|self::TYPE_INT_STRING|self::TYPE_STRING $typeName */
                     $value = match ($typeName) {
                         self::TYPE_BOOL => (bool)$value,
                         self::TYPE_FLOAT => (float)$value,
                         self::TYPE_INT => (int)$value,
                         self::TYPE_INT_FLOAT => Number::toIntOrFloat($value ?? 0),
+                        self::TYPE_INT_STRING => is_int($value) || ($value === (string)(int)$value) ? (int)$value : $value,
                         self::TYPE_STRING => (string)$value,
                     };
                 }
@@ -122,7 +123,6 @@ final class Typecast
             default:
                 if (
                     is_scalar($value) &&
-                    interface_exists(BackedEnum::class) &&
                     is_subclass_of($typeName, BackedEnum::class)
                 ) {
                     /** @var BackedEnum $typeName */
@@ -160,11 +160,15 @@ final class Typecast
         }
 
         if ($type instanceof ReflectionUnionType) {
-            // Special case for int|float
             $names = array_map(fn(ReflectionNamedType $type) => $type->getName(), $type->getTypes());
             sort($names);
+            // Special case for int|float
             if ($names === [self::TYPE_FLOAT, self::TYPE_INT] || $names === [self::TYPE_FLOAT, self::TYPE_INT, self::TYPE_NULL]) {
                 return [self::TYPE_INT_FLOAT, in_array(self::TYPE_NULL, $names)];
+            }
+            // Special case for int|string
+            if ($names === [self::TYPE_INT, self::TYPE_STRING] || $names === [self::TYPE_INT, self::TYPE_NULL, self::TYPE_STRING]) {
+                return [self::TYPE_INT_STRING, in_array(self::TYPE_NULL, $names)];
             }
         }
 

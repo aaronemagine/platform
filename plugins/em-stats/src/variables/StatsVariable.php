@@ -14,9 +14,18 @@ class StatsVariable
         $this->_statsService = new StatsService();
     }
 
-    public function getTotalVisitsCount($userId = null)
+    public function getTotalVisitsCount(?int $userId = null): int
     {
-        return $this->_statsService->getTotalVisitsCount($userId);
+        return \emagine\emstats\EmStats::$plugin
+            ->statsService
+            ->getTotalVisitsCount($userId);
+    }
+
+    public function getWeekHourMatrix(?string $date = null, ?int $userId = null): array
+    {
+        return \emagine\emstats\EmStats::$plugin
+            ->statsService
+            ->getWeekHourMatrix($date, $userId);
     }
 
     public function getLanguageMap()
@@ -93,6 +102,44 @@ class StatsVariable
     {
         return $this->_statsService->getVisitsPerHeadsetForCurrentUser($userId);
     }
+
+    /**
+     * @param string|null $from
+     * @param string|null $to
+     * @param int|null    $userId
+     */
+    public function getVenueVisitCounts(
+        ?string $from = null,
+        ?string $to   = null,
+        ?int    $userId = null
+    ): array {
+        return \emagine\emstats\EmStats::$plugin
+            ->statsService
+            ->getVenueVisitCounts($from, $to, $userId);
+    }
+
+    /** @see StatsService::getMovieVisitCounts */
+    public function getMovieVisitCounts(
+        ?string $from = null,
+        ?string $to   = null,
+        ?int    $userId = null
+    ): array {
+        return \emagine\emstats\EmStats::$plugin
+            ->statsService
+            ->getMovieVisitCounts($from, $to, $userId);
+    }
+
+    /** @see StatsService::getHeadsetVisitCounts */
+    public function getHeadsetVisitCounts(
+        ?string $from = null,
+        ?string $to   = null,
+        ?int    $userId = null
+    ): array {
+        return \emagine\emstats\EmStats::$plugin
+            ->statsService
+            ->getHeadsetVisitCounts($from, $to, $userId);
+    }
+
 
     // Add more methods to expose other data to the templates...
 }

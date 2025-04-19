@@ -7,7 +7,6 @@
 
 namespace craft\generator\generators;
 
-use Composer\Json\JsonManipulator;
 use Composer\Semver\Comparator;
 use Composer\Semver\VersionParser;
 use Craft;
@@ -336,14 +335,8 @@ MD;
             'url' => FileHelper::relativePath($this->targetDir, $composerDir, '/'),
         ];
 
-        // First try adding it with JsonManipulator
-        $manipulator = new JsonManipulator(file_get_contents($this->composerFile));
-        if ($manipulator->addRepository($pluginRepoName, $pluginRepoConfig)) {
-            $this->command->writeToFile($this->composerFile, $manipulator->getContents());
-        } else {
-            $composerConfig['repositories'][$pluginRepoName] = $pluginRepoConfig;
-            $this->command->writeJson($this->composerFile, $composerConfig);
-        }
+        $composerConfig['repositories'][$pluginRepoName] = $pluginRepoConfig;
+        $this->command->writeJson($this->composerFile, $composerConfig);
 
         $message = <<<MD
 **Plugin created!**
@@ -395,6 +388,7 @@ YAML;
     private function writePluginClass(): void
     {
         $file = new PhpFile();
+        $file->setStrictTypes($this->command->withStrictTypes);
 
         $namespace = $file->addNamespace($this->rootNamespace)
             ->addUse(Craft::class)
@@ -434,7 +428,7 @@ EOD);
             ->setReturnType('void')
             ->setBody(<<<EOD
 // Register event handlers here ...
-// (see https://craftcms.com/docs/4.x/extend/events.html to get started)
+// (see https://craftcms.com/docs/5.x/extend/events.html to get started)
 EOD);
 
         $this->writePhpFile("$this->targetDir/src/$this->className.php", $file);
@@ -725,9 +719,11 @@ PHP,
             'init' => <<<PHP
 parent::init();
 
-// Defer most setup tasks until Craft is fully initialized
+\$this->attachEventHandlers();
+
+// Any code that creates an element query or loads Twig should be deferred until
+// after Craft is fully initialized, to avoid conflicts with other plugins/modules
 Craft::\$app->onInit(function() {
-    \$this->attachEventHandlers();
     // ...
 });
 PHP,
@@ -748,6 +744,7 @@ PHP
     private function writeSettingsModel(): void
     {
         $file = new PhpFile();
+        $file->setStrictTypes($this->command->withStrictTypes);
 
         $namespace = $file->addNamespace($this->settingsNamespace)
             ->addUse(Craft::class)

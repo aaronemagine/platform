@@ -9,7 +9,6 @@ namespace craft\elements\actions;
 
 use Craft;
 use craft\base\ElementAction;
-use craft\base\ElementInterface;
 use craft\elements\db\ElementQueryInterface;
 
 /**
@@ -46,8 +45,6 @@ class Restore extends ElementAction
      */
     public function setElementType(string $elementType): void
     {
-        /** @var string|ElementInterface $elementType */
-        /** @phpstan-var class-string<ElementInterface> $elementType */
         parent::setElementType($elementType);
 
         if (!isset($this->successMessage)) {
@@ -88,9 +85,9 @@ class Restore extends ElementAction
 (() => {
     new Craft.ElementActionTrigger({
         type: $type,
-        validateSelection: \$selectedItems => {
-            for (let i = 0; i < \$selectedItems.length; i++) {
-                if (!Garnish.hasAttr(\$selectedItems.eq(i).find('.element'), 'data-restorable')) {
+        validateSelection: (selectedItems, elementIndex) => {
+            for (let i = 0; i < selectedItems.length; i++) {
+                if (!Garnish.hasAttr(selectedItems.eq(i).find('.element'), 'data-restorable')) {
                     return false;
                 }
             }

@@ -1,4 +1,6 @@
+{% cache %}
 {% extends 'includes/main.twig' %}
+{% endcache %}
 
 {% block content %}
 
@@ -8,280 +10,95 @@
 
 {% set selectedUserId = currentUser.id %}
 
-{% if selectedUserId is not null %}
-    {% do craft.app.session.set('selectedUserId', selectedUserId) %}
-{% endif %}
 
-{% set totalVisitsPerLanguage = selectedUserId ? craft.emstats.getTotalVisitsPerLanguage(selectedUserId) : null %}
-
-{# If a user ID was selected, find the company name #}
 {% if selectedUserId %}
 
-    {% set selectedUser = craft.users().id(selectedUserId).one() %}
-    {% if selectedUser %}
-        {% set selectedCompany = selectedUser.getFieldValue('companyName') %}
-        {% set totalEntries = craft.emstats.getTotalVisitsCount(selectedUserId) %}
-        {% set totalVisitsPerLanguage = craft.emstats.getTotalVisitsPerLanguage(selectedUserId) %}
+    {% set dailyStats = craft.emstats.getTodayVisitsByTimeAndLanguage(craft.app.request.getParam('day'), selectedUserId) %}
+    {% set dayNavUrls = craft.emstats.getDayNavigationUrls(craft.app.request.getParam('day')) %}
+
+    {% set totalDailyVisits = 0 %}  
+
+    {% set lowercaseDailyStats = {} %}
+    {% if dailyStats is defined %}
+        {% for time, stats in dailyStats %}
+            {% set lowerStats = {} %}
+            {% for lang, count in stats %}
+                {% set lowerStats = lowerStats|merge({ (lang|lower): count }) %}
+                {% set totalDailyVisits = totalDailyVisits + count %}
+            {% endfor %}
+            {% set lowercaseDailyStats = lowercaseDailyStats|merge({ (time): lowerStats }) %}
+        {% endfor %}
     {% endif %}
+
 {% endif %}
 
-
-{# -- set up the language map -- #}
 {% set languageMap = craft.emstats.getLanguageMap %}
 {% set languages = languageMap|keys %}
 
-{% set totalVisitsPerVenue = craft.emstats.getTotalVisitsPerVenue(selectedUserId) %}
-{% set totalVisitsPerMovie = craft.emstats.getTotalVisitsPerMovie(selectedUserId) %}
 
-{% set currentDateParam = craft.app.request.getParam('date') %}
-{% set weekNavUrls = craft.emstats.getWeekNavigationUrls(currentDateParam) %}
-{% set weeklyStats = craft.emstats.getWeeklyStats(currentDateParam, selectedUserId) %}
-
-{% set lowercaseWeeklyStats = {} %}
-{% for time, stats in weeklyStats %}
-  {% set lowerStats = {} %}
-  {% for lang, count in stats %}
-    {% set lowerStats = lowerStats|merge({ (lang|lower): count }) %}
-  {% endfor %}
-  {% set lowercaseWeeklyStats = lowercaseWeeklyStats|merge({ (time): lowerStats }) %}
-{% endfor %}
-
-{% set totalWeeklyVisits = 0 %}
-{% for day, visits in weeklyStats.totalVisitsPerDay %}
-  {% set totalWeeklyVisits = totalWeeklyVisits + visits %}
-{% endfor %}
-
-{% set monthParam = craft.app.request.getParam('month') %}
-{% set monthNavUrls = craft.emstats.getMonthNavigationUrls(monthParam) %}
-{% set monthlyStats = craft.emstats.calculateMonthlyStats(monthParam, selectedUserId) %}
-
-{% set lowercaseMonthlyStats = {} %}
-{% for time, stats in monthlyStats %}
-  {% set lowerStats = {} %}
-  {% for lang, count in stats %}
-    {% set lowerStats = lowerStats|merge({ (lang|lower): count }) %}
-  {% endfor %}
-  {% set lowercaseMonthlyStats = lowercaseMonthlyStats|merge({ (time): lowerStats }) %}
-{% endfor %}
-
-{% set totalMonthlyVisits = 0 %}
-{% for week, visits in monthlyStats.totalVisitsPerWeek %}
-  {% set totalMonthlyVisits = totalMonthlyVisits + visits %}
-{% endfor %}
-
-
-{% set dayParam = craft.app.request.getParam('day') %}
-{% set dayNavUrls = craft.emstats.getDayNavigationUrls(dayParam) %}
-{% set dailyStats = craft.emstats.getTodayVisitsByTimeAndLanguage(dayParam, selectedUserId) %}
-
-{% set lowercaseDailyStats = {} %}
-{% for time, stats in dailyStats %}
-  {% set lowerStats = {} %}
-  {% for lang, count in stats %}
-    {# Assuming future use where values might be strings #}
-    {# For now, since they are integers, we just assign them directly #}
-    {% set lowerStats = lowerStats|merge({ (lang|lower): count }) %}
-  {% endfor %}
-  {% set lowercaseDailyStats = lowercaseDailyStats|merge({ (time): lowerStats }) %}
-{% endfor %}
-
-{% set totalDailyVisits = 0 %}
-
-{% for time, languages in dailyStats %}
-  {% for language, count in languages %}
-    {% set totalDailyVisits = totalDailyVisits + count %}
-  {% endfor %}
-{% endfor %}
 
 <div class="flex min-h-screen">
 
-    {% include 'includes/sidebar.twig' %}
-
-    {#-- Main Content Area --#}
     <div class="flex-grow w-full bg-grey-500 p-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-       
-             <div class="p-4 sm:p-6 bg-gray-800 text-white border border-gray-700 rounded-lg shadow-2xl col-span-2">
-
-
-                <div class="grid grid-rows-3 gap-4">
-                    {% if selectedCompany %}
-                        <div class="row-span-1">
-                            <h1 class="text-xl font-bold mb-2">{{ 'Stats for'|t }} {{ selectedCompany }}</h1>
-                        </div>
-                    {% endif %}
-                    {% if totalEntries is defined and selectedCompany %}
-                        <div class="row-span-1">
-                            <h2 class="text-l font-bold mb-2">{{ 'Total visits'|t }}: {{ totalEntries }}</h2>
-                        </div>
-                    {% endif %}
-
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
-
-                        {% if totalVisitsPerLanguage is defined and selectedCompany %}
-                            <div class="col-span-1">
-                                <h3 class="text-l font-bold mb-2">{{ 'Visits by language'|t }}:</h3>
-                                <ul class="list-disc pl-5">
-                                    {% for code, total in totalVisitsPerLanguage %}
-                                        {% set languageName = languageMap[code].name ?? code %}
-                                        <li>{{ languageName }}: {{ total }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        {% endif %}
-
-                        {% if totalVisitsPerVenue is defined and selectedCompany %}
-                            <div class="col-span-1">
-                                <h3 class="text-l font-bold mb-2">{{ 'Visits by venue'|t }}:</h3>
-                                <ul class="list-disc pl-5">
-                                    {% for venueName, total in totalVisitsPerVenue %}
-                                        <li>{{ venueName }}: {{ total }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        {% endif %}
-
-                        {% if totalVisitsPerMovie is defined and selectedCompany %}
-                            <div class="col-span-1">
-                                <h3 class="text-l font-bold mb-2">{{ 'Visits by experience'|t }}:</h3>
-                                <ul class="list-disc pl-5">
-                                    {% for movieName, total in totalVisitsPerMovie %}
-                                        <li>{{ movieName }}: {{ total }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        {% endif %}
-                    </div>
-
-                </div>
-            </div>
-
-
-
-
-            <div class="p-4 border rounded-lg shadow-2xl col-span-1 border-gray-700 sm:p-6 bg-gray-800 text-white">
-                <div class="flex">
-                    <div class="w-1/3"></div>
-                    <div class="w-2/3">
-                        <canvas id="languagePieChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-         </div>
-
-   
-         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mt-4 p-4 border rounded-lg shadow-sm  border-gray-700 bg-gray-800 text-white">
-
-
-
-            <div class="p-4">
-                <!-- Tab Headers -->
-                <div class="flex border-b">
-                    <button class="tab-button py-2 px-4 text-l font-medium text-gray-600 border-b-2 focus:outline-none" data-target="fullGraph">{{ 'Visits this week'|t }} ({{ totalWeeklyVisits }})</button>
-                    <button class="tab-button py-2 px-4 text-l font-medium text-gray-600 border-b-2 focus:outline-none" data-target="byLanguages">{{ 'By language'|t }}</button>
-                </div>
-
-                <!-- Tab Content -->
-                <div id="fullGraph" class="tab-content p-4 hidden">
-                    {% if currentDateParam %}
-                        {% set mondayOfWeek = currentDateParam|date('Y-m-d')|date_modify('Monday this week') %}
-                        <h3 class="text-l mb-2">{{ 'Week of'|t }} {{ mondayOfWeek|date('F jS, Y') }}</h3>
-                    {% endif %}
-                    <canvas id="visitsThisWeekChart"></canvas> 
-                    <div class="flex justify-between pt-1">
-                        <a href="{{ weekNavUrls.prevWeekUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            {{ 'Prev week'|t }}
-                        </a>
-                        <a href="{{ weekNavUrls.nextWeekUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            {{ 'Next week'|t }}
-                        </a>
-                    </div>
-                </div>
-                <div id="byLanguages" class="tab-content p-4 hidden">
-                    {% if currentDateParam %}
-                        {% set mondayOfWeek = currentDateParam|date('Y-m-d')|date_modify('Monday this week') %}
-                        <h3 class="text-l mb-2">{{ 'Week of'|t }} {{ mondayOfWeek|date('F jS, Y') }}</h3>
-                    {% endif %}
-                    <canvas id="visitsThisWeekLanguageChart"></canvas>
-                    <div class="flex justify-between pt-1">
-                        <a href="{{ weekNavUrls.prevWeekUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            {{ 'Prev week'|t }}
-                        </a>
-                        <a href="{{ weekNavUrls.nextWeekUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            {{ 'Next week'|t }}
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="p-4">
-                <!-- Tab Headers -->
-                <div class="flex border-b">
-                    <button class="month-tab-button py-2 px-4 text-l font-medium text-gray-600 border-b-2 focus:outline-none" data-target="visitsThisMonth">{{ 'Visits this month'|t }} ({{ totalMonthlyVisits }})</button>
-                    <button class="month-tab-button py-2 px-4 text-l font-medium text-gray-600 border-b-2 focus:outline-none" data-target="monthByLanguage">{{ 'By language'|t }}</button>
-                </div>
-
-                <!-- Tab Content -->
-                <div id="visitsThisMonth" class="month-tab-content p-4 hidden">
-                    {% if monthParam %}
-                        {% set monthDate = monthParam|date('Y-m-d') %}
-                        {% set monthName = monthDate|date('F, Y') %}
-                        <h3 class="text-l mb-2">Plays in {{ monthName }}</h3>
-                    {% endif %}
-
-                    <canvas id="totalVisitsLineChartMonth"></canvas>
-                
-                    <div class="flex justify-between pt-1">
-                        <a href="{{ monthNavUrls.prevMonthUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            {{ 'Prev month'|t }}
-                        </a>
-                        <a href="{{ monthNavUrls.nextMonthUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            {{ 'Next month'|t }}
-                        </a>
-                    </div>
-                </div>
-                <div id="monthByLanguage" class="month-tab-content p-4 hidden">
-                    {% if monthParam %}
-                        {% set monthDate = monthParam|date('Y-m-d') %}
-                        {% set monthName = monthDate|date('F, Y') %}
-                        <h3 class="text-l mb-2">{{ 'Visits in'|t }} {{ monthName }}</h3>
-                    {% endif %}
-
-                    <canvas id="visitsByLanguageBarChartMonth"></canvas>
-
-                    <div class="flex justify-between pt-1">
-                        <a href="{{ monthNavUrls.prevMonthUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            {{ 'Prev month'|t }}
-                        </a>
-                        <a href="{{ monthNavUrls.nextMonthUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            {{ 'Next month'|t }}
-                        </a>
-                    </div>
-                </div>
-            </div>
-
+        <div class="row-span-1">
+            {% set currentDayParam = craft.app.request.getParam('day') %}
+            {% set displayDay = currentDayParam ? currentDayParam|date('l, jS F, Y') : (craft.app.language == 'fr' ? 'Aujourd\'hui' : 'Today') %}
+            <h1 class="text-xl font-bold mb-2 text-white">
+                {{ 'Visits per hour'|t }}: {{ displayDay }} - ({{ totalDailyVisits }})
+            </h1>
         </div>
-
-        <div class="grid grid-cols-1 gap-4 mt-4 p-4 border rounded-lg shadow-sm  border-gray-700 bg-gray-800 text-white">
-            <!-- Card 2 -->
-            <div>
-                {% set currentDayParam = craft.app.request.getParam('day') %}
-      
-                {% if currentDayParam %}
-                    {% set displayDay = currentDayParam|date('l, jS F, Y') %}
-                {% else %}
-                    {% set displayDay = craft.app.language == 'fr' ? 'Aujourd\'hui' : 'Today' %}
-                {% endif %}
-
-                <h3 class="text-xl font-bold mb-2">{{ 'Visits per hour'|t }}: {{ displayDay }} - ({{ totalDailyVisits }})</h3>
-                <canvas id="barDayChart"></canvas>
-
-                <div class="flex justify-between pt-1">
-                    <a href="{{ dayNavUrls.prevDayUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">{{ 'Prev day'|t }}</a>
-                    <a href="{{ dayNavUrls.nextDayUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">{{ 'Next day'|t }}</a>
-                </div>
+        <div class="grid grid-cols-3 gap-4 mt-4 p-4 border rounded-lg shadow-sm border-gray-700 bg-gray-800 text-white">
+            <div class="col-span-3">
+                <div class="p-4 h-full">
+                    <canvas id="barDayChart"></canvas>
+                </div>    
             </div>
+        </div>
+        <div class="flex justify-between pt-4">
+            <a href="{{ dayNavUrls.prevDayUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">{{ 'Prev day'|t }}</a>
+            <a href="{{ dayNavUrls.nextDayUrl }}" class="inline-block bg-gray-700 hover:bg-teal-700 text-sm text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline">{{ 'Next day'|t }}</a>
+        </div>
+        <div class="grid grid-cols-4 gap-4 mt-4 p-4 border rounded-lg shadow-sm border-gray-700 bg-gray-800 text-white">
+
+               {% set dailyStatsList = dailyStats|keys|map(key => {'time': key, 'stats': dailyStats[key]}) %}
+{% set sortedDailyStatsList = dailyStatsList|sort((a, b) => a.time <=> b.time) %}
+{% set sortedDailyStats = sortedDailyStatsList|reduce((carry, item) => carry|merge({ (item.time): item.stats }), {}) %}
+
+{% set batchSize = (sortedDailyStats|length / 2)|round(0, 'ceil') %}
+{% set batchedDailyStats = batchSize > 0 ? sortedDailyStats|batch(batchSize) : [sortedDailyStats] %}
+
+
+    {% for batch in batchedDailyStats %}
+    <div class="col-span-2">
+        <table class="w-full bg-gray-800 border border-gray-700">
+            <thead>
+                <tr>
+                    <th class="w-2/3 px-4 py-2 border-b border-gray-700 bg-gray-700 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">{{ 'Hour'|t }}</th>
+                    <th class="w-1/3 px-4 py-2 border-b border-gray-700 bg-gray-700 text-right text-sm font-medium text-gray-300 uppercase tracking-wider">{{ 'Visits'|t }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for time, stats in batch %}
+                {% set totalCount = stats|reduce((sum, item) => sum + item, 0) %}
+                <tr class="{{ loop.index0 is even ? 'bg-gray-800' : 'bg-gray-700' }}">
+                    <td class="w-2/3 px-4 py-2 border-b border-gray-700 text-sm text-gray-300">{{ time }}</td>
+                    <td class="w-1/3 px-4 py-2 border-b border-gray-700 text-sm text-gray-300 text-right">
+                        {{ totalCount }}
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if loop.last %}
+                <tr>
+                    <td class="w-2/3 px-4 py-2 border-b border-gray-700 text-sm text-gray-900 bg-gray-400">{{ 'Total visits'|t }}:</td>
+                    <td class="w-1/3 px-4 py-2 border-t text-right border-gray-700 text-sm text-gray-900 bg-gray-400">{{ totalDailyVisits }}</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+
+
         </div>
     </div>
 </div>
@@ -289,284 +106,13 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-
-    // Check if languageMap is defined
     const languageMap = {{ languageMap|json_encode|raw }};
     if (typeof languageMap === 'undefined') {
         console.error('languageMap is not defined');
-        return; // Stop execution if languageMap is not defined
+        return;
     }
-
-
-    // this is our pie chart
-    var totalVisitsPerLanguage = {{ totalVisitsPerLanguage is not null ? totalVisitsPerLanguage|json_encode|raw : 'null' }};
-
-    if (typeof totalVisitsPerLanguage !== 'undefined') {
-    // totalVisitsPerLanguage is defined
-
-        // Draw 'languagePieChart' pie chart
-        const totalVisitsPerLanguage = JSON.parse('{{ totalVisitsPerLanguage|json_encode|raw }}');
-        const labels = [];
-        const data = [];
-        const colors = [];
-
-        // Loop through totalVisitsPerLanguage and populate labels, data, and colors
-        Object.keys(totalVisitsPerLanguage).forEach(code => {
-            if (languageMap[code]) { // Check if the language code exists in languageMap
-                labels.push(languageMap[code].name);
-                data.push(totalVisitsPerLanguage[code]);
-                colors.push(languageMap[code].hex);
-            } else {
-                console.error('Language code ' + code + ' does not exist in languageMap');
-            }
-        });
-
-        // Creating the pie chart
-        const pieCtx = document.getElementById('languagePieChart').getContext('2d');
-        new Chart(pieCtx, {
-            type: 'pie',
-            data: {
-                labels: labels,
-                datasets: [{ data: data, backgroundColor: colors, borderWidth: 0 }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: true, position: 'left' }
-                }
-            }
-        });
-
-    } else {
-        // totalVisitsPerLanguage is not defined
-        console.log("totalVisitsPerLanguage is not defined");
-    }
-
-    // this is the visits per day line and bar chart
-    const weeklyStats = JSON.parse('{{ lowercaseWeeklyStats|json_encode|raw }}');
-    const totalVisitsPerDay = weeklyStats.totalVisitsPerDay;
-
-    const dayLabels = Object.keys(totalVisitsPerDay);
-
-        console.log(weeklyStats);
-
-    // Line Chart Dataset
-    const lineChartDataset = {
-        label: 'Total Plays',
-        data: dayLabels.map(day => totalVisitsPerDay[day]),
-        backgroundColor: '#27272a',
-        borderColor: 'white',
-        borderWidth: 2,
-        fill: true
-    };
-
-    // Initialize Line Chart
-    const lineChartCtx = document.getElementById('visitsThisWeekChart').getContext('2d');
-    new Chart(lineChartCtx, {
-        type: 'line',
-        data: {
-            labels: dayLabels,
-            datasets: [lineChartDataset]
-        },
-        options: {
-            scales: {
-                y: { beginAtZero: true }
-            },
-            plugins: {
-                legend: { display: false }
-            }
-        }
-    });
-
-    const languageDayData = weeklyStats.languageDayData;
-
-
-    // Initialize datasets array for Bar Chart
-    let barChartDatasets = [];
-
-    Object.keys(languageMap).forEach(languageCode => {
-
-        let languageData = dayLabels.map(day => languageDayData[day][languageCode] || 0);
-    
-        const totalVisitsForLanguage = languageData.reduce((acc, cur) => acc + cur, 0);
-
-        if (totalVisitsForLanguage > 0) {
-
-            barChartDatasets.push({
-                label: languageMap[languageCode].name,
-                data: languageData,
-                backgroundColor: languageMap[languageCode].hex,
-                borderColor: languageMap[languageCode].hex,
-                borderWidth: 1,
-                stack: 'stacked'
-            });
-        }
-    });
-
-    // Initialize Stacked Bar Chart
-    const barChartCtx = document.getElementById('visitsThisWeekLanguageChart').getContext('2d');
-    new Chart(barChartCtx, {
-        type: 'bar',
-        data: {
-            labels: dayLabels,
-            datasets: barChartDatasets
-        },
-        options: {
-            indexAxis: 'x',
-            scales: {
-                x: { stacked: true },
-                y: { stacked: true }
-            },
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'bottom'
-                }
-            }
-        }
-    });
-
-    const monthlyStatsData = JSON.parse('{{ monthlyStats|json_encode|raw }}');
-    const totalVisitsPerWeek = monthlyStatsData.totalVisitsPerWeek;
-    const weekLabels = monthlyStatsData.weekLabels;
-
-    // Line Chart Dataset for Total Visits Per Week
-    const lineChartDatasetMonth = {
-        label: 'Total Visits',
-        data: weekLabels.map(week => totalVisitsPerWeek[week]),
-        backgroundColor: '#27272a',
-        borderColor: 'white',
-        borderWidth: 2,
-        fill: true
-    };
-
-    // Initialize Line Chart
-    const lineChartCtxMonth = document.getElementById('totalVisitsLineChartMonth').getContext('2d');
-    new Chart(lineChartCtxMonth, {
-        type: 'line',
-        data: {
-            labels: weekLabels,
-            datasets: [lineChartDatasetMonth]
-        },
-        options: {
-            scales: {
-                y: { beginAtZero: true }
-            },
-            plugins: {
-                legend: { display: false }
-            }
-        }
-    });
-
-    const weeklyLanguageVisits = monthlyStatsData.weeklyLanguageVisits;
-
-    // Initialize datasets array for Bar Chart
-    let barChartDatasetsMonth = [];
-
-    Object.keys(languageMap).forEach(languageCode => {
-        let languageData = weekLabels.map(weekLabel => weeklyLanguageVisits[languageCode][weekLabel] || 0);
-        
-        const totalVisitsForLanguage = languageData.reduce((acc, cur) => acc + cur, 0);
-        if (totalVisitsForLanguage > 0) {
-            barChartDatasetsMonth.push({
-                label: languageMap[languageCode].name,
-                data: languageData,
-                backgroundColor: languageMap[languageCode].hex,
-                borderColor: languageMap[languageCode].hex,
-                borderWidth: 1,
-                stack: 'stacked'
-            });
-        }
-    });
-
-    // Initialize Stacked Bar Chart
-    const barChartCtxMonth = document.getElementById('visitsByLanguageBarChartMonth').getContext('2d');
-    new Chart(barChartCtxMonth, {
-        type: 'bar',
-        data: {
-            labels: weekLabels,
-            datasets: barChartDatasetsMonth
-        },
-        options: {
-            indexAxis: 'x',
-            scales: {
-                x: { stacked: true },
-                y: { stacked: true }
-            },
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'bottom'
-                }
-            }
-        }
-    });
-
-
-
-
-    // // Draw 'weeklyVisitsThisMonthChart' graph
-    // const monthlyStatsData = JSON.parse('{{ monthlyStats|json_encode|raw }}');
-    // const weeklyCtx = document.getElementById('weeklyVisitsThisMonthChart').getContext('2d');
-    // const weekLabels = monthlyStatsData.weekLabels;
-    // const weeklyLanguageVisits = monthlyStatsData.weeklyLanguageVisits;
-    // const totalVisitsPerWeek = monthlyStatsData.totalVisitsPerWeek;
-
-    // // Initialize datasets array
-    // datasets = [];
-
-    // // Add the line graph dataset for total visits per week
-    // datasets.push({
-    //     type: 'line', // Specifies a line dataset for the total visits
-    //     label: 'Total Plays',
-    //     data: Object.values(totalVisitsPerWeek), // Use the values from the totalVisitsPerWeek object
-    //     backgroundColor: 'rgba(255, 255, 255, 0)', 
-    //     borderColor: 'white',
-    //     borderWidth: 2,
-    //     fill: false
-    // });
-
-    // // Add bar chart datasets for each language
-    // Object.keys(weeklyLanguageVisits).forEach(languageCode => {
-    //     let languageData = weekLabels.map(weekLabel => weeklyLanguageVisits[languageCode][weekLabel] || 0);
-
-    //     const totalVisitsForLanguage = languageData.reduce((acc, cur) => acc + cur, 0);
-    //     if (totalVisitsForLanguage > 0) {
-    //         datasets.push({
-    //             label: languageMap[languageCode].name, // Get the language name
-    //             data: languageData, // Language-specific visit counts
-    //             backgroundColor: languageMap[languageCode].hex, // Get the hex color
-    //             borderColor: languageMap[languageCode].hex,
-    //             borderWidth: 1,
-    //             stack: 'stacked' // This is needed to stack bars on top of each other
-    //         });
-    //     }
-    // });
-
-    // // Create the Chart instance
-    // new Chart(weeklyCtx, {
-    //     type: 'bar',
-    //     data: {
-    //         labels: weekLabels,
-    //         datasets: datasets
-    //     },
-    //     options: {
-    //         indexAxis: 'x',
-    //         scales: {
-    //             x: { stacked: true },
-    //             y: { stacked: true }
-    //         },
-    //         plugins: {
-    //             legend: {
-    //                 display: true,
-    //                 position: 'bottom'
-    //             }
-    //         }
-    //     }
-    // });
 
     const dailyStats = JSON.parse('{{ lowercaseDailyStats|json_encode|raw }}');
-
     const allLabels = Object.keys(dailyStats);
     const timeSlots = [];
     for (let hour = 8; hour <= 20; hour++) {
@@ -574,12 +120,11 @@ document.addEventListener('DOMContentLoaded', function() {
         timeSlots.push(`${hour.toString().padStart(2, '0')}:30`);
     }
 
-    // Filter labels for 8 AM to 8 PM
     const filteredLabels = allLabels.filter(label => {
         const hour = parseInt(label.split(':')[0]);
-        return hour >= 8 && hour <= 20; // Adjust the range as needed
+        return hour >= 8 && hour <= 20;
     });
-    
+
     datasets = [];
 
     Object.keys(languageMap).forEach(function(languageCode) {
@@ -589,8 +134,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return dailyStats[timeSlot] && dailyStats[timeSlot][languageCode] ? dailyStats[timeSlot][languageCode] : 0;
         });
 
-
-        // Check if the language has any data
         if (dataPoints.some(point => point > 0)) {
             datasets.push({
                 label: languageInfo.name,
@@ -609,75 +152,30 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         options: {
             scales: {
-                x: { stacked: true },
-                y: { stacked: true }
+                x: { stacked: true,
+                ticks: {
+                        color: 'white' // Change x-axis labels to white
+                    } 
+                },
+                y: { stacked: true,
+                    ticks: {
+                        color: 'white' // Change x-axis labels to white
+                    } 
+                }
             },
             plugins: {
                 legend: {
-                    display: datasets.length > 1, // Display legend only if more than one language
-                    position: 'bottom'
+                    display: datasets.length > 1,
+                    position: 'bottom',
+                    labels: {
+                            color: 'white' // Change legend labels color to white
+                    }
                 }
             }
         }
     });
 
-
-
-    const tabs = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            // Remove active state from all tabs
-            tabs.forEach(t => t.classList.remove('text-blue-600', 'border-blue-600'));
-            // Hide all tab contents
-            tabContents.forEach(content => content.classList.add('hidden'));
-
-            // Set active state on clicked tab
-            tab.classList.add('text-blue-600', 'border-blue-600');
-            // Show the corresponding tab content
-            const activeTabContent = document.getElementById(tab.getAttribute('data-target'));
-            activeTabContent.classList.remove('hidden');
-        });
-    });
-
-    // Activate the first tab by default
-    if (tabs.length > 0) {
-        tabs[0].click();
-    }
-
-    const monthTabs = document.querySelectorAll('.month-tab-button');
-    const monthTabContents = document.querySelectorAll('.month-tab-content');
-
-    monthTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            // Remove active state from all tabs
-            monthTabs.forEach(t => t.classList.remove('text-blue-600', 'border-blue-600'));
-            // Hide all tab contents
-            monthTabContents.forEach(content => content.classList.add('hidden'));
-
-            // Set active state on clicked tab
-            tab.classList.add('text-blue-600', 'border-blue-600');
-            // Show the corresponding tab content
-            const activeTabContent = document.getElementById(tab.getAttribute('data-target'));
-            activeTabContent.classList.remove('hidden');
-        });
-    });
-
-    // Activate the first tab by default
-    if (monthTabs.length > 0) {
-        monthTabs[0].click();
-    }
-
 });
-
-
-
-
 </script>
 
 {% endblock %}
-
-
-
-

@@ -1,4 +1,5 @@
-{% if name ?? false %}
+{% set name = name ?? false %}
+{% if name %}
     {{ hiddenInput(name, '') }}
 {% endif -%}
 
@@ -10,14 +11,20 @@
 {% set criteria = criteria ?? null -%}
 {% set sourceElementId = sourceElementId ?? null -%}
 {% set storageKey = storageKey ?? null -%}
+{% set defaultPlacement = defaultPlacement ?? 'end' %}
 {% set viewMode = viewMode ?? 'list' %}
-{% set sortable = sortable ?? true %}
 {% set prevalidate = prevalidate ?? false %}
 {% set fieldId = fieldId ?? null %}
 {% set single = single ?? false %}
 {% set limit = single ? 1 : (limit ?? null) %}
+{% set showActionMenu = showActionMenu ?? true %}
+{% set sortable = (not limit or limit > 1) and (sortable ?? true) %}
 {% set disabled = (disabled ?? false) ? true : false %}
 {% set maintainHierarchy = maintainHierarchy ?? false %}
+{% set registerJs = registerJs ?? true %}
+
+{% set allowAdd = allowAdd ?? true %}
+{% set allowRemove = allowRemove ?? true %}
 
 {% set containerAttributes = {
     id: id,
@@ -34,48 +41,77 @@
 
 {% tag 'div' with containerAttributes %}
     {% if maintainHierarchy %}
-        {{ include('_elements/structurelist.twig', { elements, id })}}
+        {{ include('_elements/structurelist.twig', {
+            id,
+            elements,
+            context: 'field',
+            sortable: false,
+        }) }}
+    {% elseif viewMode == 'cards' %}
+        {{ include('_elements/cards.twig', {
+            elements,
+            viewMode,
+            showInGrid: showCardsInGrid ?? false,
+            disabled,
+            context: 'field',
+            sortable: false,
+        }) }}
     {% else %}
-        {{ include('_elements/list.twig', { elements, viewMode, disabled }) }}
+        {{ include('_elements/list.twig', {
+            elements,
+            viewMode,
+            disabled,
+            context: 'field',
+            sortable: false,
+        }) }}
     {% endif %}
 
-    <div class="flex flex-nowrap">
-        {{ tag('button', {
-            type: 'button',
-            class: [
-                'btn',
-                'add',
-                'icon',
-                'dashed',
-                disabled ? 'disabled',
-                limit and elements|length >= limit ? 'hidden',
-            ]|filter,
-            text: selectionLabel ?? 'Choose'|t('app'),
-            disabled: disabled,
-            aria: {
-                label: selectionLabel ?? 'Choose'|t('app'),
-                describedby: describedBy ?? false,
-            }
-        }) }}
+    <div class="flex">
+        {% if allowAdd %}
+            {{ tag('button', {
+                type: 'button',
+                class: [
+                    'btn',
+                    'add',
+                    'icon',
+                    'dashed',
+                    'wrap',
+                    disabled ? 'disabled',
+                    limit and elements|length >= limit ? 'hidden',
+                ]|filter,
+                text: selectionLabel ?? 'Choose'|t('app'),
+                disabled: disabled,
+                aria: {
+                    label: selectionLabel ?? 'Choose'|t('app'),
+                    describedby: describedBy ?? false,
+                }
+            }) }}
+        {% endif %}
         <div class="spinner hidden"></div>
     </div>
 {% endtag %}
 
-{% if not disabled %}
+{% if not disabled and registerJs %}
     {% set jsSettings = {
         id: id|namespaceInputId,
-        name: name|namespaceInputName,
+        name: name ? name|namespaceInputName : null,
         elementType: elementType,
         sources: sources,
         condition: condition ? condition.getConfig() : null,
         referenceElementId: referenceElement.id ?? null,
+        referenceElementOwnerId: (referenceElement ?? null) is instance of('craft\\base\\NestedElementInterface')
+            ? referenceElement.getOwnerId()
+            : null,
         referenceElementSiteId: referenceElement.siteId ?? null,
         criteria: criteria,
+        allowAdd: allowAdd,
+        allowRemove: allowRemove,
         allowSelfRelations: allowSelfRelations ?? false,
         maintainHierarchy: maintainHierarchy,
         branchLimit: branchLimit ?? null,
         sourceElementId: sourceElementId,
         disabledElementIds: disabledElementIds ?? null,
+        defaultPlacement,
         viewMode: viewMode,
         single: single,
         limit: limit,
@@ -83,6 +119,7 @@
         modalStorageKey: storageKey,
         fieldId: fieldId,
         sortable: sortable,
+        showActionMenu: showActionMenu,
         prevalidate: prevalidate,
         modalSettings: modalSettings ?? {},
     } %}

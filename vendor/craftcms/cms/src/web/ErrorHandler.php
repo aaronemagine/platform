@@ -9,6 +9,7 @@ namespace craft\web;
 
 use Craft;
 use craft\events\ExceptionEvent;
+use craft\events\RedirectEvent;
 use craft\helpers\App;
 use craft\helpers\Json;
 use craft\helpers\Template;
@@ -39,6 +40,12 @@ class ErrorHandler extends \yii\web\ErrorHandler
     public const EVENT_BEFORE_HANDLE_EXCEPTION = 'beforeHandleException';
 
     /**
+     * @event RedirectEvent The event that is triggered before a 404 redirect.
+     * @since 5.6.0
+     */
+    public const EVENT_BEFORE_REDIRECT = 'beforeRedirect';
+
+    /**
      * @inheritdoc
      */
     public function handleException($exception): void
@@ -57,6 +64,35 @@ class ErrorHandler extends \yii\web\ErrorHandler
 
         // 404?
         if ($exception instanceof HttpException && $exception->statusCode === 404) {
+            $redirectRules = Craft::$app->getConfig()->getConfigFromFile('redirects');
+            if ($redirectRules) {
+                foreach ($redirectRules as $from => $rule) {
+                    if (!$rule instanceof RedirectRule) {
+                        $config = is_string($rule) ? ['to' => $rule] : $rule;
+                        $rule = Craft::createObject([
+                            'class' => RedirectRule::class,
+                            'from' => $from,
+                            ...$config,
+                        ]);
+                    }
+
+                    $url = $rule->getMatch();
+
+                    if ($url === null) {
+                        continue;
+                    }
+
+                    if ($this->hasEventHandlers(self::EVENT_BEFORE_REDIRECT)) {
+                        $this->trigger(self::EVENT_BEFORE_REDIRECT, new RedirectEvent([
+                            'rule' => $rule,
+                        ]));
+                    }
+
+                    Craft::$app->getResponse()->redirect($url, $rule->statusCode);
+                    Craft::$app->end();
+                }
+            }
+
             $request = Craft::$app->getRequest();
             if ($request->getIsSiteRequest() && $request->getPathInfo() === 'wp-admin') {
                 $exception->statusCode = 418;
@@ -129,7 +165,7 @@ class ErrorHandler extends \yii\web\ErrorHandler
         // Return JSON for JSON requests
         if ($request && $request->getAcceptsJson()) {
             $response->format = Response::FORMAT_JSON;
-            $includeFullInfo = $this->_showExceptionView();
+            $includeFullInfo = $this->showExceptionDetails();
             $message = ($includeFullInfo || $exception instanceof UserException)
                 ? $exception->getMessage()
                 : Craft::t('app', 'A server error occurred.');
@@ -137,8 +173,6 @@ class ErrorHandler extends \yii\web\ErrorHandler
                 'name' => ($exception instanceof Exception || $exception instanceof ErrorException) ? $exception->getName() : 'Exception',
                 'message' => $message,
                 'code' => $exception->getCode(),
-                // TODO: remove in v5; error message should only be in `message`
-                'error' => $message,
             ];
 
             if ($exception instanceof HttpException) {
@@ -146,7 +180,7 @@ class ErrorHandler extends \yii\web\ErrorHandler
             }
 
             if ($includeFullInfo) {
-                $response->data += $this->_exceptionAsArray($exception, false);
+                $response->data += $this->exceptionAsArray($exception);
             }
 
             // Override the status code and error message if this is a Guzzle client exception
@@ -184,7 +218,7 @@ class ErrorHandler extends \yii\web\ErrorHandler
         }
         // Show the full exception view for all exceptions when Dev Mode is enabled (don't skip `UserException`s)
         // or if the user is an admin and has indicated they want to see it
-        elseif ($this->_showExceptionView()) {
+        elseif ($this->showExceptionDetails()) {
             $this->errorAction = null;
             $this->errorView = $this->exceptionView;
         }
@@ -192,25 +226,29 @@ class ErrorHandler extends \yii\web\ErrorHandler
         parent::renderException($exception);
     }
 
-    private function _exceptionAsArray(Throwable $exception, bool $withMessage)
+    /**
+     * Returns an array representation of the given throwable.
+     *
+     * @param Throwable $e
+     * @return array
+     * @since 4.9.0
+     */
+    public function exceptionAsArray(Throwable $e)
     {
         $array = [
-            'exception' => get_class($exception),
-            'file' => $exception->getFile(),
-            'line' => $exception->getLine(),
+            'exception' => get_class($e),
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
             'trace' => array_map(function($step) {
                 unset($step['args']);
                 return $step;
-            }, $exception->getTrace()),
+            }, $e->getTrace()),
         ];
 
-        if ($withMessage) {
-            $array = ['message' => $exception->getMessage()] + $array;
-        }
-
-        $prev = $exception->getPrevious();
+        $prev = $e->getPrevious();
         if ($prev !== null) {
-            $array['previous'] = $this->_exceptionAsArray($prev, true);
+            $array['previous'] = $this->exceptionAsArray($prev);
         }
 
         return $array;
@@ -255,11 +293,12 @@ class ErrorHandler extends \yii\web\ErrorHandler
     }
 
     /**
-     * Returns whether the full exception view should be shown.
+     * Returns whether full exception details should be shown for the current user.
      *
      * @return bool
+     * @since 4.9.0
      */
-    private function _showExceptionView(): bool
+    public function showExceptionDetails(): bool
     {
         if (App::devMode()) {
             return true;

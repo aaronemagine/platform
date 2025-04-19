@@ -37,9 +37,17 @@ class PhpInfo extends Utility
     /**
      * @inheritdoc
      */
-    public static function iconPath(): ?string
+    public static function isSelectable(): bool
     {
-        return Craft::getAlias('@appicons/info-circle.svg');
+        return function_exists('phpinfo');
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function icon(): ?string
+    {
+        return 'circle-info';
     }
 
     /**

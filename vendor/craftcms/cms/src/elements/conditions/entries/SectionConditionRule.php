@@ -22,6 +22,11 @@ class SectionConditionRule extends BaseMultiSelectConditionRule implements Eleme
     /**
      * @inheritdoc
      */
+    protected bool $reloadOnOperatorChange = true;
+
+    /**
+     * @inheritdoc
+     */
     public function getLabel(): string
     {
         return Craft::t('app', 'Section');
@@ -38,9 +43,20 @@ class SectionConditionRule extends BaseMultiSelectConditionRule implements Eleme
     /**
      * @inheritdoc
      */
+    protected function operators(): array
+    {
+        return [
+            ...parent::operators(),
+            self::OPERATOR_NOT_EMPTY,
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
     protected function options(): array
     {
-        $sections = Craft::$app->getSections()->getAllSections();
+        $sections = Craft::$app->getEntries()->getAllSections();
         return ArrayHelper::map($sections, 'uid', 'name');
     }
 
@@ -50,8 +66,12 @@ class SectionConditionRule extends BaseMultiSelectConditionRule implements Eleme
     public function modifyQuery(ElementQueryInterface $query): void
     {
         /** @var EntryQuery $query */
-        $sections = Craft::$app->getSections();
-        $query->sectionId($this->paramValue(fn($uid) => $sections->getSectionByUid($uid)->id ?? null));
+        if ($this->operator === self::OPERATOR_NOT_EMPTY) {
+            $query->section('*');
+        } else {
+            $sections = Craft::$app->getEntries();
+            $query->sectionId($this->paramValue(fn($uid) => $sections->getSectionByUid($uid)->id ?? null));
+        }
     }
 
     /**
@@ -60,6 +80,10 @@ class SectionConditionRule extends BaseMultiSelectConditionRule implements Eleme
     public function matchElement(ElementInterface $element): bool
     {
         /** @var Entry $element */
-        return $this->matchValue($element->getSection()->uid);
+        if ($this->operator === self::OPERATOR_NOT_EMPTY) {
+            return $element->getSection() !== null;
+        }
+
+        return $this->matchValue($element->getSection()?->uid);
     }
 }

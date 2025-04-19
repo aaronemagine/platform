@@ -1,6 +1,11 @@
 defaultPlacement: end
 enableVersioning: true
+entryTypes:
+  -
+    handle: default
+    uid: a7b7e1ba-7fb3-4258-8a31-c45adeaf82b8 # Default
 handle: movies
+maxAuthors: 1
 name: Movies
 previewTargets:
   -

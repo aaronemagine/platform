@@ -11,8 +11,6 @@ use craft\elements\Address as AddressElement;
 use craft\elements\db\AddressQuery;
 use craft\elements\db\ElementQuery;
 use craft\gql\base\ElementResolver;
-use craft\helpers\Gql as GqlHelper;
-use Illuminate\Support\Collection;
 use yii\base\UnknownMethodException;
 
 /**
@@ -50,10 +48,6 @@ class Address extends ElementResolver
                     throw $e;
                 }
             }
-        }
-
-        if (!GqlHelper::canQueryUsers()) {
-            return Collection::empty();
         }
 
         return $query;

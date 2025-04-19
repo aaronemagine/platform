@@ -1,6 +1,5 @@
 columnSuffix: xsmoaddn
 contentColumnType: time
-fieldGroup: cfe8b169-e903-42f6-92ac-f4af56aa1ab8 # Venues
 handle: venueOpeningTime
 instructions: null
 name: 'Venue Opening Time'

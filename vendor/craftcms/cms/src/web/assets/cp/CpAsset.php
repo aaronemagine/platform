@@ -12,6 +12,7 @@ use craft\base\ElementInterface;
 use craft\base\FieldInterface;
 use craft\config\GeneralConfig;
 use craft\elements\User;
+use craft\enums\CmsEdition;
 use craft\helpers\Assets;
 use craft\helpers\Cp;
 use craft\helpers\DateTimeHelper;
@@ -22,11 +23,13 @@ use craft\helpers\UrlHelper;
 use craft\i18n\Locale;
 use craft\models\Section;
 use craft\services\Sites;
+use craft\utilities\QueueManager;
+use craft\validators\UserPasswordValidator;
 use craft\web\AssetBundle;
+use craft\web\assets\animationblocker\AnimationBlockerAsset;
 use craft\web\assets\axios\AxiosAsset;
 use craft\web\assets\d3\D3Asset;
 use craft\web\assets\datepickeri18n\DatepickerI18nAsset;
-use craft\web\assets\elementresizedetector\ElementResizeDetectorAsset;
 use craft\web\assets\fabric\FabricAsset;
 use craft\web\assets\fileupload\FileUploadAsset;
 use craft\web\assets\garnish\GarnishAsset;
@@ -37,6 +40,7 @@ use craft\web\assets\jqueryui\JqueryUiAsset;
 use craft\web\assets\picturefill\PicturefillAsset;
 use craft\web\assets\selectize\SelectizeAsset;
 use craft\web\assets\tailwindreset\TailwindResetAsset;
+use craft\web\assets\theme\ThemeAsset;
 use craft\web\assets\velocity\VelocityAsset;
 use craft\web\assets\xregexp\XregexpAsset;
 use craft\web\View;
@@ -57,9 +61,9 @@ class CpAsset extends AssetBundle
      */
     public $depends = [
         TailwindResetAsset::class,
+        AnimationBlockerAsset::class,
         AxiosAsset::class,
         D3Asset::class,
-        ElementResizeDetectorAsset::class,
         GarnishAsset::class,
         JqueryAsset::class,
         JqueryTouchEventsAsset::class,
@@ -73,6 +77,7 @@ class CpAsset extends AssetBundle
         XregexpAsset::class,
         FabricAsset::class,
         IframeResizerAsset::class,
+        ThemeAsset::class,
     ];
 
     /**
@@ -118,6 +123,7 @@ JS;
             '<span class="visually-hidden">Characters left:</span> {chars, number}',
             'A server error occurred.',
             'Actions',
+            'Add',
             'Add…',
             'All',
             'Announcements',
@@ -126,36 +132,54 @@ JS;
             'Apply',
             'Are you sure you want to close the editor? Any changes will be lost.',
             'Are you sure you want to close this screen? Any changes will be lost.',
-            'Are you sure you want to delete this address?',
             'Are you sure you want to delete this image?',
+            'Are you sure you want to delete this {type}?',
             'Are you sure you want to delete “{name}”?',
             'Are you sure you want to discard your changes?',
+            'Are you sure you want to move the selected items?',
             'Are you sure you want to transfer your license to this domain?',
+            'Are you sure you want to undo the move?',
             'Ascending',
             'Assets',
+            'Attributes',
             'Breadcrumbs',
             'Buy {name}',
             'Cancel',
+            'Change',
+            'Changes saved.',
+            'Check your email for instructions to reset your password.',
+            'Choose a page',
             'Choose a user',
             'Choose which sites this source should be visible for.',
             'Choose which table columns should be visible for this source by default.',
             'Choose which user groups should have access to this source.',
+            'Choose',
+            'Clear search',
             'Clear',
             'Close Preview',
             'Close',
             'Color hex value',
             'Color picker',
+            'Content',
             'Continue',
             'Copied to clipboard.',
+            'Copy from',
             'Copy the URL',
             'Copy the reference tag',
             'Copy to clipboard',
+            'Copy “{name}” value',
+            'Copy',
+            'Could not save due to validation errors.',
             'Couldn’t delete “{name}”.',
+            'Couldn’t reorder items.',
             'Couldn’t save new order.',
+            'Create {type}',
             'Create',
+            'Custom',
             'Customize sources',
             'Default Sort',
             'Default Table Columns',
+            'Default View Mode',
             'Delete custom source',
             'Delete folder',
             'Delete heading',
@@ -169,12 +193,17 @@ JS;
             'Device type',
             'Discard changes',
             'Discard',
+            'Display as cards',
             'Display as thumbnails',
             'Display in a structured table',
             'Display in a table',
             'Done',
+            'Don’t show in element cards',
+            'Don’t use for element thumbnails',
             'Draft Name',
+            'Duplicate',
             'Edit draft settings',
+            'Edit {type}',
             'Edit',
             'Edited',
             'Element',
@@ -182,13 +211,14 @@ JS;
             'Enabled for all sites',
             'Enabled',
             'Enter the name of the folder',
-            'Enter your password to continue.',
             'Enter your password to log back in.',
             'Error',
+            'Existing {type}',
             'Export Type',
             'Export',
             'Export…',
             'Failed',
+            'Fields',
             'Folder actions',
             'Folder created.',
             'Folder created.',
@@ -197,19 +227,22 @@ JS;
             'Folder renamed.',
             'Folder renamed.',
             'Format',
-            'Found {num, number} {num, plural, =1{error} other{errors}}',
+            'Found {num, number} {num, plural, =1{error} other{errors}} in this tab.',
             'From {date}',
             'From',
             'Give your tab a name.',
             'Handle',
             'Heading',
             'Height unit',
-            'Hide nested sources',
             'Hide sidebar',
             'Hide',
             'Incorrect password.',
+            'Indexing assets: {progress}',
             'Information',
             'Instructions',
+            'Invalid email.',
+            'Invalid username or email.',
+            'Items reordered.',
             'Keep both',
             'Keep me signed in',
             'Keep them',
@@ -218,10 +251,11 @@ JS;
             'Level {num}',
             'License transferred.',
             'Limit',
+            'Loading complete',
             'Loading',
             'Make not required',
+            'Make optional',
             'Make required',
-            'Matrix block could not be added. Maximum number of blocks reached.',
             'Merge the folder (any conflicting files will be replaced)',
             'Missing or empty {items}',
             'Missing {items}',
@@ -230,8 +264,11 @@ JS;
             'More items',
             'More',
             'More…',
+            'Move backward',
             'Move down',
             'Move folder',
+            'Move forward',
+            'Move reverted.',
             'Move to the left',
             'Move to the right',
             'Move to',
@@ -239,29 +276,33 @@ JS;
             'Move',
             'Name',
             'New category in the {group} category group',
-            'New category',
             'New category, choose a category group',
             'New child',
             'New custom source',
             'New entry in the {section} section',
-            'New entry',
             'New entry, choose a section',
+            'New field',
+            'New file uploaded.',
             'New heading',
             'New order saved.',
+            'New position saved.',
             'New position saved.',
             'New subfolder',
             'New {group} category',
             'New {section} entry',
+            'New {type}',
             'Next Page',
             'No limit',
             'Notes',
             'Notice',
+            'Number of columns',
             'OK',
-            'Open the full edit page in a new tab',
+            'Open in a new tab',
             'Options',
             'Password',
             'Past year',
             'Past {num} days',
+            'Paste {type}',
             'Pay {price}',
             'Pending',
             'Phone',
@@ -271,6 +312,8 @@ JS;
             'Previewing {type} device in {orientation}',
             'Previewing {type} device',
             'Previous Page',
+            'Process complete',
+            'Processing',
             'Really delete folder “{folder}”?',
             'Recent Activity',
             'Refresh',
@@ -282,23 +325,27 @@ JS;
             'Reorder',
             'Replace it',
             'Replace the folder (all existing files will be deleted)',
+            'Replace',
             'Required',
             'Rotate',
             'Row could not be added. Maximum number of rows reached.',
             'Row could not be deleted. Minimum number of rows reached.',
-            'Save as a new asset',
+            'Row {index}',
+            'Save as a new {type}',
             'Save',
             'Saved {timestamp} by {creator}',
             'Saved {timestamp}',
             'Saving',
             'Score',
             'Search in subfolders',
+            'Search',
             'Select all',
             'Select element',
             'Select transform',
             'Select {element}',
             'Select',
             'Settings',
+            'Show in element cards',
             'Show nav',
             'Show nested sources',
             'Show sidebar',
@@ -306,10 +353,12 @@ JS;
             'Show',
             'Show/hide children',
             'Showing your unsaved changes.',
-            'Sign in',
+            'Showing {first, number}-{last, number} of {total, number} {total, plural, =1{{item}} other{{items}}}',
+            'Showing {total, number} {total, plural, =1{{item}} other{{items}}}',
             'Sign out now',
             'Sites',
-            'Skip to {title}',
+            'Skip to card view designer',
+            'Skip to top of preview',
             'Sort ascending',
             'Sort attribute',
             'Sort by',
@@ -340,9 +389,9 @@ JS;
             'To {date}',
             'To',
             'Today',
-            'Top of preview',
             'Transfer it to:',
             'Try again',
+            'Try another way',
             'Undo',
             'Unread announcements',
             'Update {type}',
@@ -351,7 +400,12 @@ JS;
             'Upload failed.',
             'Upload files',
             'Use defaults',
+            'Use for element thumbnails',
             'User Groups',
+            'View in a new tab',
+            'View in a new tab',
+            'View mode options',
+            'View settings',
             'View',
             'Volume path',
             'Warning',
@@ -361,13 +415,13 @@ JS;
             'You must specify a tab name.',
             'Your changes could not be stored.',
             'Your changes have been stored.',
-            'Your session has ended.',
             'Your session will expire in {time}.',
             'by {creator}',
             'day',
             'days',
             'draft',
             'element',
+            'elements',
             'files',
             'folders',
             'hour',
@@ -384,15 +438,51 @@ JS;
             '{first}-{last} of {total}',
             '{name} active, more info',
             '{name} folder',
+            '{name} sorted by {attribute}, {direction}',
             '{num, number} {num, plural, =1{Available Update} other{Available Updates}}',
             '{num, number} {num, plural, =1{degree} other{degrees}}',
             '{num, number} {num, plural, =1{notification} other{notifications}}',
+            '{num, number} {num, plural, =1{result} other{results}}',
+            '{num} percent complete',
             '{pct} width',
+            '{total, number} {total, plural, =1{error} other{errors}} found in {num, number} {num, plural, =1{tab} other{tabs}}.',
             '{total, number} {total, plural, =1{{item}} other{{items}}}',
+            '{total, number} {type} copied.',
             '{totalItems, plural, =1{Item} other{Items}} moved.',
             '{type} Criteria',
+            '{type} copied.',
             '{type} saved.',
             '“{name}” deleted.',
+        ]);
+
+        $view->registerTranslations('yii', [
+            '{attribute} should contain at least {min, number} {min, plural, one{character} other{characters}}.',
+            '{attribute} should contain at most {max, number} {max, plural, one{character} other{characters}}.',
+        ]);
+
+        $view->registerIcons([
+            'arrow-down',
+            'arrow-left',
+            'arrow-right',
+            'arrow-up',
+            'arrows-rotate',
+            'asterisk',
+            'asterisk-slash',
+            'clipboard',
+            'clone',
+            'clone-dashed',
+            'duplicate',
+            'edit',
+            'gear',
+            'image',
+            'image-slash',
+            'move',
+            'pencil',
+            'plus',
+            'remove',
+            'share',
+            'trash',
+            'xmark',
         ]);
     }
 
@@ -410,6 +500,10 @@ JS;
         $primarySite = $upToDate ? $sitesService->getPrimarySite() : null;
 
         $data = [
+            'Solo' => CmsEdition::Solo->value,
+            'Team' => CmsEdition::Team->value,
+            'Pro' => CmsEdition::Pro->value,
+            'Enterprise' => CmsEdition::Enterprise->value,
             'actionTrigger' => $generalConfig->actionTrigger,
             'actionUrl' => UrlHelper::actionUrl(),
             'announcements' => $upToDate ? Craft::$app->getAnnouncements()->get() : [],
@@ -425,24 +519,25 @@ JS;
             'fileKinds' => Assets::getFileKinds(),
             'language' => Craft::$app->language,
             'left' => $orientation === 'ltr' ? 'left' : 'right',
+            'maxPasswordLength' => UserPasswordValidator::MAX_PASSWORD_LENGTH,
+            'minPasswordLength' => UserPasswordValidator::MIN_PASSWORD_LENGTH,
             'omitScriptNameInUrls' => $generalConfig->omitScriptNameInUrls,
             'orientation' => $orientation,
             'pageNum' => $request->getPageNum(),
             'pageTrigger' => 'p',
             'path' => $request->getPathInfo(),
             'pathParam' => $generalConfig->pathParam,
-            'Pro' => Craft::Pro,
             'registeredAssetBundles' => [], // force encode as JS object
             'registeredJsFiles' => [], // force encode as JS object
             'resourceBaseUrl' => Craft::$app->getAssetManager()->baseUrl,
             'right' => $orientation === 'ltr' ? 'right' : 'left',
             'scriptName' => basename($request->getScriptFile()),
-            'Solo' => Craft::Solo,
             'systemUid' => Craft::$app->getSystemUid(),
             'timepickerOptions' => $this->_timepickerOptions($formattingLocale, $orientation),
             'timezone' => Craft::$app->getTimeZone(),
             'tokenParam' => $generalConfig->tokenParam,
             'translations' => ['' => ''], // force encode as JS object
+            'useEmailAsUsername' => $generalConfig->useEmailAsUsername,
             'usePathInfo' => $generalConfig->usePathInfo,
         ];
 
@@ -458,8 +553,7 @@ JS;
 
         $elementTypeNames = [];
         foreach (Craft::$app->getElements()->getAllElementTypes() as $elementType) {
-            /** @var string|ElementInterface $elementType */
-            /** @phpstan-var class-string<ElementInterface>|ElementInterface $elementType */
+            /** @var class-string<ElementInterface> $elementType */
             $elementTypeNames[$elementType] = [
                 $elementType::displayName(),
                 $elementType::pluralDisplayName(),
@@ -474,13 +568,16 @@ JS;
             'allowUppercaseInSlug' => $generalConfig->allowUppercaseInSlug,
             'apiParams' => Craft::$app->apiParams,
             'appId' => Craft::$app->id,
+            'autofocusPreferred' => $currentUser->getAutofocusPreferred(),
             'autosaveDrafts' => $generalConfig->autosaveDrafts,
-            'canAccessQueueManager' => $userSession->checkPermission('utility:queue-manager'),
+            'canAccessQueueManager' => Craft::$app->getUtilities()->checkAuthorization(QueueManager::class),
             'dataAttributes' => Html::$dataAttributes,
             'defaultIndexCriteria' => [],
+            'disableAutofocus' => (bool)($currentUser->getPreference('disableAutofocus') ?? false),
             'editableCategoryGroups' => $upToDate ? $this->_editableCategoryGroups() : [],
-            'edition' => Craft::$app->getEdition(),
+            'edition' => Craft::$app->edition->value,
             'elementTypeNames' => $elementTypeNames,
+            'elevatedSessionDuration' => $generalConfig->elevatedSessionDuration,
             'fieldsWithoutContent' => array_map(fn(FieldInterface $field) => $field->handle, Craft::$app->getFields()->getFieldsWithoutContent(false)),
             'handleCasing' => $generalConfig->handleCasing,
             'httpProxy' => $this->_httpProxy($generalConfig),
@@ -499,6 +596,8 @@ JS;
             'sites' => $this->_sites($sitesService),
             'siteToken' => $generalConfig->siteToken,
             'slugWordSeparator' => $generalConfig->slugWordSeparator,
+            'userEmail' => $currentUser->email,
+            'userHasPasskeys' => Craft::$app->getAuth()->hasPasskeys($userSession->getImpersonator() ?? $currentUser),
             'userIsAdmin' => $currentUser->admin,
             'username' => $currentUser->username,
         ];
@@ -510,6 +609,7 @@ JS;
     {
         return [
             'constrainInput' => false,
+            'changeYear' => true,
             'dateFormat' => $formattingLocale->getDateFormat(Locale::LENGTH_SHORT, Locale::FORMAT_JUI),
             'dayNames' => $locale->getWeekDayNames(Locale::LENGTH_FULL),
             'dayNamesMin' => $locale->getWeekDayNames(Locale::LENGTH_ABBREVIATED),
@@ -594,7 +694,7 @@ JS;
     {
         $sections = [];
 
-        foreach (Craft::$app->getSections()->getEditableSections() as $section) {
+        foreach (Craft::$app->getEntries()->getEditableSections() as $section) {
             if ($section->type !== Section::TYPE_SINGLE && $currentUser->can("createEntries:$section->uid")) {
                 $sections[] = [
                     'entryTypes' => $this->_entryTypes($section),

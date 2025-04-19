@@ -1,6 +1,10 @@
 defaultPlacement: end
 enableVersioning: true
+entryTypes:
+  -
+    uid: 1a26c486-8723-402a-a398-68b766f2d163 # Default
 handle: languages
+maxAuthors: 1
 name: Languages
 previewTargets:
   -
