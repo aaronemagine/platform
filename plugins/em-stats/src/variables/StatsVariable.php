@@ -48,12 +48,21 @@ class StatsVariable
         return $this->_statsService->getDayNavigationUrls($baseDate);
     }
 
-    public function getWeeklyStats($selectedDate = null, $userId = null)
+    public function getWeeklyStats($selectedDate = null, $userId = null, $siteId = null)
     {
         $selectedDate = Craft::$app->getRequest()->getParam('date');
 
         // Determine the current site ID
-        $selectedSiteId = Craft::$app->getSites()->getCurrentSite()->id;
+        if ($siteId !== null) {
+            // the caller explicitly passed it in
+            $selectedSiteId = $siteId;
+        } else {
+            // no param → check plugin settings → fall back to current site
+            $settings       = EmStats::getInstance()->getSettings();
+            $selectedSiteId = $settings->siteId
+                ?? Craft::$app->getSites()->getCurrentSite()->id;
+        }
+
 
         // Determine the current site language
         $language = Craft::$app->getSites()->getCurrentSite()->language;

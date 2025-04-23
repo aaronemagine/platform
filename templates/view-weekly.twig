@@ -2,6 +2,7 @@
 
 {% block content %}
 
+
     {# ───────────────────────── PARAMETERS ────────────────────────── #}
     {% if not currentUser %}{% redirect 'index' %}{% endif %}
 
@@ -10,7 +11,8 @@
     {% set weekNav   = craft.emstats.getWeekNavigationUrls(dateParam) %}
 
     {# ──────────────────── FETCH WEEKLY STATS FROM PLUGIN ─────────── #}
-    {% set stats             = craft.emstats.getWeeklyStats(dateParam, userId) %}
+
+    {% set stats             = craft.emstats.getWeeklyStats(dateParam, userId, 1) %}
     {% set languageDayData   = stats.languageDayData %}
     {% set totalVisitsPerDay = stats.totalVisitsPerDay %}
     {% set languageMap       = craft.emstats.getLanguageMap() %}

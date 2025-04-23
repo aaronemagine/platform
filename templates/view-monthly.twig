@@ -29,8 +29,8 @@
 
     <div class="flex-grow w-full bg-grey-500 p-4">
         <div class="row-span-1">
-            {% if craft.app.request.getParam('date') %}
-                {% set monthDate = craft.app.request.getParam('month')|date('Y-m-d') %}
+            {% if craft.app.request.getParam('month') %}
+                {% set monthDate = craft.app.request.getParam('month')|date('Y-m') %}
                 {% set monthName = monthDate|date('F, Y') %}
                 <h1 class="text-xl font-bold mb-2 text-white">{{ 'Visits in'|t }} {{ monthName }}</h1>
             {% else %}
