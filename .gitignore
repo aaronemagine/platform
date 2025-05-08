@@ -7,3 +7,6 @@ db.sql
 /frontend-framework
 /frontend
 /storage
+.DS_Store
+vendor/.DS_Store
+vendor/.DS_Store
