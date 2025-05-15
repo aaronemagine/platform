@@ -209,6 +209,8 @@ final class StatsService extends Component
 
     public function getTotalVisitsPerLanguage(?int $userId = null): array
     {
+        $userId ??= \Craft::$app->user->id;
+
         return $this->baseQuery()
             ->authorId($userId)
             ->collect()
@@ -220,6 +222,8 @@ final class StatsService extends Component
 
     public function getTotalVisitsPerVenue(?int $userId = null): array
     {
+        $userId ??= \Craft::$app->user->id;
+
         return $this->baseQuery()
             ->authorId($userId)
             ->collect()
@@ -232,6 +236,8 @@ final class StatsService extends Component
 
     public function getTotalVisitsPerMovie(?int $userId = null): array
     {
+        $userId ??= \Craft::$app->user->id;
+
         return $this->baseQuery()
             ->authorId($userId)
             ->collect()
@@ -401,6 +407,7 @@ final class StatsService extends Component
         ?string $dateParam = null,
         ?int    $userId    = null,
         ?int    $siteId    = null
+        
     ): array {
         // Build day labels for Monday→Sunday
         $start   = $dateParam ? new DateTime($dateParam) : new DateTime('today');
