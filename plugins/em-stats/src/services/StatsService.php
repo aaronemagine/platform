@@ -13,7 +13,7 @@ use craft\elements\Entry;
 use craft\elements\User;
 use craft\helpers\UrlHelper;
 use DateTime;
-use Illuminate\Support\Collection; // installed with Craft ^5
+use Illuminate\Support\Collection; // instal
 
 final class StatsService extends Component
 {
@@ -242,27 +242,81 @@ final class StatsService extends Component
             ->all();
     }
 
-    public function getVisitsPerHeadsetForCurrentUser(?int $userId = null): array
-    {
-        $userId ??= Craft::$app->user->id;
-        $rows = $this->baseQuery()
-            ->authorId($userId)
-            ->collect()
-            ->map(fn($e) => $e->headset->one())
-            ->filter();
 
-        $counts = $rows->groupBy('id')->map->count();
+    /**
+     * @param string|null $from  Y-m-d or null = all time
+     * @param string|null $to    Y-m-d or null = all time
+     * @param int|null    $userId
+     * @return array<int,array{id:int,title:string,count:int}>
+     */
+    public function getVisitsPerHeadsetForCurrentUser(
+        ?string $from   = null,
+        ?string $to     = null,
+        ?int    $userId = null
+    ): array {
+        // 1) default to the logged-in user if none passed
+        $userId ??= \Craft::$app->user->id;
 
-        return $rows->unique('id')->mapWithKeys(
-            fn($h) => [
-                $h->id => [
-                    'id'    => $h->id,
+        // 2) build the base “statistics” query for that user
+        $visitQuery = $this->baseQuery()->authorId($userId);
+
+        // 3) apply optional date filtering
+        if ($from || $to) {
+            $start = $from
+                ? DateTime::createFromFormat('Y-m-d', $from)->setTime(0, 0, 0)
+                : new DateTime('1970-01-01');
+            $end = $to
+                ? DateTime::createFromFormat('Y-m-d', $to)->setTime(23, 59, 59)
+                : new DateTime('now');
+
+            $visitQuery->visitStart([
+                'and',
+                '>= ' . $start->format(DateTime::ATOM),
+                '<= ' . $end  ->format(DateTime::ATOM),
+            ]);
+        }
+
+        // 4) tally visits per headset ID
+        $counts = [];
+        foreach ($visitQuery->all() as $entry) {
+            $h = $entry->headset->one();
+            if (!$h) {
+                continue;
+            }
+            $id = $h->id;
+            if (!isset($counts[$id])) {
+                $counts[$id] = [
+                    'id'    => $id,
                     'title' => $h->title,
-                    'count' => $counts[$h->id] ?? 0,
-                ],
-            ]
-        )->all();
+                    'count' => 0,
+                ];
+            }
+            $counts[$id]['count']++;
+        }
+
+        // 5) sort & title-case
+        return (new Collection($counts))
+            ->sortBy(function(array $h) {
+                // primary: first integer in the title (or large fallback)
+                if (preg_match('/\d+/', $h['title'], $m)) {
+                    $num = (int)$m[0];
+                } else {
+                    $num = PHP_INT_MAX;
+                }
+                // secondary: alphabetical on the TITLE-CASED string
+                $tc = mb_convert_case($h['title'], MB_CASE_TITLE, 'UTF-8');
+                return [$num, $tc];
+            })
+            // transform every title into “Oceano 1 Sitting” style
+            ->map(function(array $h) {
+                $h['title'] = mb_convert_case($h['title'], MB_CASE_TITLE, 'UTF-8');
+                return $h;
+            })
+            // re-index as [0=>…,1=>…, …] for JSON/Chart.js
+            ->values()
+            ->all();
     }
+
 
     /**
      * Hourxweekday visit counts for any week that contains $date.
@@ -503,6 +557,64 @@ final class StatsService extends Component
             ->countBy()
             ->sortDesc()
             ->all();
+    }
+
+    /**
+     * Returns an array of [ languageCode => count ] for all visits
+     * to a single movie, filtered by the logged-in user and optional dates.
+     *
+     * @param string      $movieTitle  The exact title of the movie
+     * @param string|null $from        Y-m-d or null = all time
+     * @param string|null $to          Y-m-d or null = all time
+     * @param int|null    $userId      Defaults to current user
+     * @return array<string,int>       e.g. ['en'=>12,'fr'=>5,'es'=>0,…]
+     */
+    public function getVisitsPerLanguageForMovie(
+        string  $movieTitle,
+        ?string $from   = null,
+        ?string $to     = null,
+        ?int    $userId = null
+    ): array {
+        $userId ??= \Craft::$app->user->id;
+
+        // 1) build the base “statistics” query for that user
+        $query = $this->baseQuery()->authorId($userId);
+
+        // 2) apply optional date filtering
+        if ($from || $to) {
+            $start = $from
+                ? \DateTime::createFromFormat('Y-m-d', $from)->setTime(0,0,0)
+                : new \DateTime('1970-01-01');
+            $end = $to
+                ? \DateTime::createFromFormat('Y-m-d', $to)->setTime(23,59,59)
+                : new \DateTime('now');
+
+            $query->visitStart([
+                'and',
+                '>= ' . $start->format(\DateTime::ATOM),
+                '<= ' . $end  ->format(\DateTime::ATOM),
+            ]);
+        }
+
+        // 3) tally only entries whose related movie's title matches
+        $counts = [];
+        foreach ($query->all() as $entry) {
+            $movie = $entry->movie->one();
+            if (!$movie || $movie->title !== $movieTitle) {
+                continue;
+            }
+            $lang = strtolower($entry->getFieldValue('visitLanguage') ?? 'unknown');
+            $counts[$lang] = ($counts[$lang] ?? 0) + 1;
+        }
+
+        // 4) ensure every known language appears (even if zero)
+        foreach (array_keys($this->getLanguageMap()) as $lc) {
+            if (!isset($counts[$lc])) {
+                $counts[$lc] = 0;
+            }
+        }
+
+        return $counts;
     }
 
 

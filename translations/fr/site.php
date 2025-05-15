@@ -54,6 +54,7 @@ return [
     'Choose movies' => 'Choisissez des films',
     'Title' => 'Titre',
     'Submit' => 'Soumettre',
+    'By Headset' => 'Par Casque',
     'My headsets' => 'Mes casques',
     'Headset id' => 'Identifiant du casque',
     'No headsets found' =>'Aucun casque trouvé',
@@ -74,5 +75,14 @@ return [
     'Username' => 'Nom d utilisateur',
     'Password' => 'Not de passe',
     'New password' => 'Nouveau mot de passe',
-    'Save profile' => 'Enregistrer le profil'
+    'Save profile' => 'Enregistrer le profil',
+    'From' => 'De',
+    'To' => 'A',
+    'Filter' => 'Filtre',
+    'Movie' => 'Film',
+    'By Movie' => 'Par Film',
+    'Select a movie' => 'Sélectionnez un film',
+    'View Movie Stats' => 'Voir les statistiques du film',
+    'Visits by Language for' => 'Visites par langue pour',
+    'Select a movie and date range to see the breakdown by language'=> 'Sélectionnez un film et une plage de dates pour voir la répartition par langue',
 ];

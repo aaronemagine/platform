@@ -112,6 +112,15 @@ class StatsVariable
         return $this->_statsService->getVisitsPerHeadsetForCurrentUser($userId);
     }
 
+    public function getVisitsPerLanguageForMovie(
+        string $movieTitle,
+        ?string $from   = null,
+        ?string $to     = null,
+        ?int    $userId = null
+    ): array {
+        return $this->_statsService->getVisitsPerLanguageForMovie($movieTitle, $from, $to, $userId);
+    }
+
     /**
      * @param string|null $from
      * @param string|null $to

@@ -1,128 +1,112 @@
 {% extends 'includes/main.twig' %}
 
 {% block content %}
-
-{% if not currentUser %}
+  {% if not currentUser %}
     {% redirect 'index' %}
-{% endif %}
+  {% endif %}
 
-{% set selectedUserId = currentUser.id %}
+  {# grab the URL params #}
+  {% set from = craft.app.request.getParam('from') %}
+  {% set to   = craft.app.request.getParam('to')   %}
+  {% set selectedUserId = currentUser.id %}
+  {% do craft.app.session.set('selectedUserId', selectedUserId) %}
 
+  {# optional: lookup company name #}
+  {% set selectedUser = craft.users().id(selectedUserId).one() %}
+  {% set selectedCompany = selectedUser ? selectedUser.getFieldValue('companyName') : null %}
 
-{% if selectedUserId is not null %}
-    {% do craft.app.session.set('selectedUserId', selectedUserId) %}
-{% endif %}
-
-{# If a user ID was selected, find the company name #}
-{% if selectedUserId %}
-    {% set selectedUser = craft.users().id(selectedUserId).one() %}
-    {% if selectedUser %}
-        {% set selectedCompany = selectedUser.getFieldValue('companyName') %}
-    {% endif %}
-{% endif %}
-
-
-{# -- set up the language map -- #}
-{% set languageMap = craft.emstats.getLanguageMap %}
-{% set languages = languageMap|keys %}
-
-{% set visitsPerHeadset = craft.emstats.getVisitsPerHeadsetForCurrentUser(selectedUserId) %}
-
-{% set sortableData = [] %}
-{% for headsetId, data in visitsPerHeadset %}
-    {% set sortableData = sortableData|merge([{
-        'headsetId': headsetId,
-        'title': data.title,
-        'count': data.count
-    }]) %}
-{% endfor %}
-
-{% set sortedData = sortableData|sort((a, b) => a.headsetId <=> b.headsetId) %}
-
-<div class="flex min-h-screen">
-
-    {% include 'includes/sidebar.twig' %}
-
-    {#-- Main Content Area --#}
+  <div class="flex min-h-screen">
     <div class="flex-grow w-full bg-grey-500 p-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-             <div class="p-4 sm:p-6 bg-gray-800 text-white border border-gray-700 rounded-lg shadow-2xl col-span-2">
-                <div class="grid grid-rows-3 gap-4">
-                    {% if selectedCompany %}
-                        <div class="row-span-1">
-                            <h1 class="text-xl font-bold mb-2">{{ 'Stats for'|t }} {{ selectedCompany }}</h1>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-         </div>
-        <div class="grid grid-cols-1 gap-4 mt-4 p-4 border rounded-lg shadow-sm  border-gray-700 bg-gray-800 text-white">
-            <!-- Card 2 -->
-            <div>
-                <h3 class="text-xl font-bold mb-2">{{ 'Total visits per headset'|t }}</h3>
-                <canvas id="headsetBarChart"></canvas>
-            </div>
+
+      <div class="p-4 sm:p-6 bg-gray-800 text-white border border-gray-700 rounded-lg shadow-2xl mb-4">
+        {% if selectedCompany %}
+          <h1 class="text-xl font-bold">{{ 'Stats for'|t }} {{ selectedCompany }}</h1>
+        {% endif %}
+      </div>
+
+      {# — Date-range filter form — #}
+      <form method="get" class="flex gap-4 mb-6">
+        <div>
+          <label for="from" class="block text-sm text-white">{{ 'From'|t }}</label>
+          <input type="date" id="from" name="from" value="{{ from }}" class="mt-1 p-2 bg-gray-700 text-white rounded">
         </div>
+        <div>
+          <label for="to" class="block text-sm text-white">{{ 'To'|t }}</label>
+          <input type="date" id="to" name="to" value="{{ to }}" class="mt-1 p-2 bg-gray-700 text-white rounded">
+        </div>
+        <div class="self-end">
+          <button type="submit" class="px-4 py-2 bg-amber-600 text-white rounded">{{ 'Filter'|t }}</button>
+        </div>
+      </form>
+
+      {# — Fetch & sort server-side — #}
+      {% set visitsPerHeadset = craft.emstats.getVisitsPerHeadsetForCurrentUser(from, to, selectedUserId) %}
+      {% set sortedData = visitsPerHeadset|values %}
+
+      <div class="grid grid-cols-1 gap-4 p-4 border rounded-lg shadow-sm border-gray-700 bg-gray-800 text-white">
+        <h3 class="text-xl font-bold mb-2">{{ 'Total visits per headset'|t }}</h3>
+        <canvas id="headsetBarChart"></canvas>
+      </div>
     </div>
-</div>
+  </div>
 
+  <script>
+   document.addEventListener('DOMContentLoaded', function() {
+  const siteLanguage      = '{{ craft.app.sites.currentSite.language }}';
+  const totalVisitsLabel  = siteLanguage === 'fr'
+                              ? 'Total des Visites'
+                              : 'Total Visits';
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
+  const sortedData  = {{ sortedData|json_encode|raw }};
+  const labels      = sortedData.map(item => item.title.replace(/ /g, '\u00A0'));
+  const dataPoints  = sortedData.map(item => item.count);
+  const ctx         = document.getElementById('headsetBarChart').getContext('2d');
 
-    const siteLanguage = '{{ craft.app.sites.currentSite.language }}';
-    const totalVisitsLabel = siteLanguage === 'fr' ? 'Total des Visites' : 'Total Visits';
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: totalVisitsLabel,
+        data: dataPoints,
+        backgroundColor: '#d97706',
+        borderColor: '#fbbf24',
+        borderWidth: 1,
 
-
-    var headsetData = {{ visitsPerHeadset|json_encode|raw }};
-
-    // Convert object to array and sort by headset ID
-    var sortedData = Object.entries(headsetData).sort(function(a, b) {
-        return parseInt(a[0]) - parseInt(b[0]);
-    });
-
-    var labels = [];
-    var dataPoints = [];
-
-    sortedData.forEach(function(item) {
-        labels.push(item[1].title); // Headset title
-        dataPoints.push(item[1].count); // Visit count
-    });
-
-    var ctx = document.getElementById('headsetBarChart').getContext('2d');
-
-    new Chart(ctx, {
-        type: 'bar',  // Standard bar chart
-        data: {
-            labels: labels,
-            datasets: [{
-                label: totalVisitsLabel,
-                data: dataPoints,
-                backgroundColor: '#d97706',
-                borderColor: '#fbbf24',
-                borderWidth: 1
-            }]
+        // ↓↓↓ BAR SIZING ↓↓↓
+        barPercentage: 0.9,     // bar fills 80% of its category slot
+        categoryPercentage: 0.9 // each category uses 60% of the available space
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      layout: {
+        padding: { top: 1, bottom: 1 } 
+      },
+      scales: {
+        y: {
+          ticks: {
+            autoSkip: false,
+            maxTicksLimit: labels.length,
+            textAlign: 'left',
+            padding: 12          // space between label and bar
+          }
         },
-        options: {
-            indexAxis: 'y',
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true
-                    }
-                }]
-            },
-            legend: {
-                display: true
-            }
+        x: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1
+          }
         }
-    });
+      },
+      plugins: {
+        legend: {
+          display: true
+        }
+      }
+    }
+  });
 });
 
-</script>
-
+  </script>
 {% endblock %}
-
-
-
-

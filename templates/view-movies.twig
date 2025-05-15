@@ -1,0 +1,152 @@
+{% extends 'includes/main.twig' %}
+
+{% block content %}
+  {% if not currentUser %}
+    {% redirect 'index' %}
+  {% endif %}
+
+  {# ─────────── GET PARAMETERS ─────────── #}
+  {% set from  = craft.app.request.getParam('from')  %}
+  {% set to    = craft.app.request.getParam('to')    %}
+  {% set movie = craft.app.request.getParam('movie') %}
+
+  <div class="flex min-h-screen">
+    {% include 'includes/sidebar.twig' %}
+    <div class="flex-grow p-6 bg-gray-800 text-white">
+
+      <h1 class="text-2xl font-bold mb-4">{{ 'View Movie Stats'|t }}</h1>
+
+      {# ─────────── FILTER FORM ─────────── #}
+      <form method="get" class="flex flex-wrap gap-4 items-end mb-6">
+        <div>
+          <label class="block text-sm">{{ 'Movie'|t }}</label>
+          <select name="movie" class="mt-1 p-2 bg-gray-700 rounded text-white">
+            <option value="">{{ 'Select a movie'|t }}</option>
+            {% for title, cnt in craft.emstats.getMovieVisitCounts(from, to, currentUser.id) %}
+              <option value="{{ title }}" {% if title == movie %}selected{% endif %}>
+                {{ title }} ({{ cnt }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm">{{ 'From'|t }}</label>
+          <input type="date" name="from" value="{{ from }}"
+                 class="mt-1 p-2 bg-gray-700 rounded text-white">
+        </div>
+        <div>
+          <label class="block text-sm">{{ 'To'|t }}</label>
+          <input type="date" name="to" value="{{ to }}"
+                 class="mt-1 p-2 bg-gray-700 rounded text-white">
+        </div>
+        <button type="submit"
+                class="px-4 py-2 bg-amber-600 rounded text-white">
+          {{ 'Filter'|t }}
+        </button>
+      </form>
+
+      {% if movie %}
+        {# ─────────── DATA GATHERING ─────────── #}
+        {% set counts       = craft.emstats.getVisitsPerLanguageForMovie(movie, from, to, currentUser.id) %}
+        {% set languageMap  = craft.emstats.getLanguageMap() %}
+
+        {# ─────────── FILTER OUT ZERO COUNTS ─────────── #}
+        {% set filteredCounts = {} %}
+        {% for code, cnt in counts %}
+          {% if cnt > 0 %}
+            {% set filteredCounts = filteredCounts | merge({ (code): cnt }) %}
+          {% endif %}
+        {% endfor %}
+
+        {# ─────────── SUM TOTALS ─────────── #}
+        {% set totalEntries = 0 %}
+        {% for code, cnt in filteredCounts %}
+          {% set totalEntries = totalEntries + cnt %}
+        {% endfor %}
+
+        <div class="grid md:grid-cols-2 gap-6">
+
+          {# ───────────── TABLE ───────────── #}
+          <div class="bg-gray-800 p-4 rounded-lg shadow">
+            <table class="w-full text-white">
+              <thead>
+                <tr>
+                  <th class="px-4 py-2 bg-gray-700 text-sm uppercase">{{ 'Language'|t }}</th>
+                  <th class="px-4 py-2 bg-gray-700 text-sm uppercase text-right">{{ 'Visits'|t }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for code, cnt in filteredCounts %}
+                  <tr class="{{ loop.index0 is even ? 'bg-gray-800' : 'bg-gray-700' }}">
+                    <td class="px-4 py-2">{{ languageMap[code].name ?? code }}</td>
+                    <td class="px-4 py-2 text-right">{{ cnt }}</td>
+                  </tr>
+                {% endfor %}
+                <tr>
+                  <td class="px-4 py-2 bg-gray-600 font-semibold">{{ 'Total visits'|t }}:</td>
+                  <td class="px-4 py-2 bg-gray-600 font-semibold text-right">{{ totalEntries }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {# ───────────── DOUGHNUT CHART ───────────── #}
+          <div class="bg-gray-800 p-4 rounded-lg shadow flex items-center justify-center">
+            <canvas id="movieLanguagePie"></canvas>
+          </div>
+
+        </div>
+      {% else %}
+        <p class="mt-6 text-gray-300">
+          {{ 'Select a movie and date range to see the breakdown by language.'|t }}
+        </p>
+      {% endif %}
+
+    </div>
+  </div>
+
+  {# ─────────── CHART.JS SCRIPT ─────────── #}
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    {% if movie %}
+      const counts      = {{ filteredCounts|json_encode|raw }};
+      const languageMap = {{ languageMap|json_encode|raw }};
+      const labels = [], data = [], colors = [];
+
+      Object.entries(counts).forEach(([code, cnt]) => {
+        if (languageMap[code]) {
+          labels.push(languageMap[code].name);
+          data.push(cnt);
+          colors.push(languageMap[code].hex);
+        }
+      });
+
+      new Chart(
+        document.getElementById('movieLanguagePie'),
+        {
+          type: 'doughnut',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: data,
+              backgroundColor: colors,
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { color: 'white' }
+              }
+            },
+            cutout: '50%'
+          }
+        }
+      );
+    {% endif %}
+  });
+  </script>
+{% endblock %}

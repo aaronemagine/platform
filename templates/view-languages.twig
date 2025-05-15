@@ -21,36 +21,40 @@
           {{ 'Visits by language'|t }}
         </h1>
 
-        <div class="grid md:grid-cols-2 gap-6">
-          {# ───────────── TABLE ───────────── #}
-          <div class="bg-gray-800 p-4 rounded-lg shadow">
-            <table class="w-full text-white">
-              <thead>
-                <tr>
-                  <th class="px-4 py-2 bg-gray-700 text-sm uppercase">{{ 'Language'|t }}</th>
-                  <th class="px-4 py-2 bg-gray-700 text-sm uppercase text-right">{{ 'Visits'|t }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for code, count in totalLangCounts %}
-                  <tr class="{{ loop.index0 is even ? 'bg-gray-800' : 'bg-gray-700' }}">
-                    <td class="px-4 py-2">
-                      {{ languageMap[code].name ?? code }}
-                    </td>
-                    <td class="px-4 py-2 text-right">{{ count }}</td>
-                  </tr>
-                {% endfor %}
-                <tr>
-                  <td class="px-4 py-2 bg-gray-600 font-semibold">{{ 'Total visits'|t }}:</td>
-                  <td class="px-4 py-2 bg-gray-600 font-semibold text-right">{{ totalEntries }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <div class="grid grid-cols-1 gap-6">
 
-          {# ───────────── PIE / DOUGHNUT CHART ───────────── #}
-          <div class="bg-gray-800 p-4 rounded-lg shadow flex items-center">
-            <canvas id="languagePieChart"></canvas>
+          {# ───────────── STATS CARD ───────────── #}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 border rounded-lg shadow-sm border-gray-700 bg-gray-800 text-white">
+
+            {# — Table of counts — #}
+            <div class="overflow-x-auto">
+              <table class="w-full text-white">
+                <thead>
+                  <tr>
+                    <th class="px-4 py-2 bg-gray-700 text-sm uppercase">{{ 'Language'|t }}</th>
+                    <th class="px-4 py-2 bg-gray-700 text-sm uppercase text-right">{{ 'Visits'|t }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for code, count in totalLangCounts %}
+                    <tr class="{{ loop.index0 is even ? 'bg-gray-800' : 'bg-gray-700' }}">
+                      <td class="px-4 py-2">{{ languageMap[code].name ?? code }}</td>
+                      <td class="px-4 py-2 text-right">{{ count }}</td>
+                    </tr>
+                  {% endfor %}
+                  <tr>
+                    <td class="px-4 py-2 bg-gray-600 font-semibold">{{ 'Total visits'|t }}:</td>
+                    <td class="px-4 py-2 bg-gray-600 font-semibold text-right">{{ totalEntries }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {# — Pie chart — #}
+            <div class="relative" style="height:300px;">
+              <canvas id="languagePieChart"></canvas>
+            </div>
+
           </div>
         </div>
 
@@ -60,7 +64,6 @@
     {# ─────────── CHART.JS SCRIPT ─────────── #}
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-
       const langMap  = {{ languageMap|json_encode|raw }};
       const langData = {{ totalLangCounts|json_encode|raw }};
 
@@ -76,30 +79,32 @@
         }
       });
 
-      new Chart(
-        document.getElementById('languagePieChart'),
-        {
-          type: 'doughnut',
-          data: {
-            labels,
-            datasets: [{
-              data,
-              backgroundColor: colors,
-              borderWidth: 0
-            }]
+      const ctx = document.getElementById('languagePieChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{
+            data,
+            backgroundColor: colors,
+            borderWidth: 0
+          }]
+        },
+        options: {
+          maintainAspectRatio: false,
+          responsive: true,
+          layout: {
+            padding: { top: 16, bottom: 16 }
           },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: {
-                position: 'bottom',
-                labels: { color: 'white' }
-              }
-            },
-            cutout: '50%'
-          }
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: 'white' }
+            }
+          },
+          cutout: '50%'
         }
-      );
+      });
     });
     </script>
 
