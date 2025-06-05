@@ -46,7 +46,7 @@ class GeneralConfig extends BaseConfig
     public const SNAKE_CASE = 'snake';
 
     /**
-     * @inerhitdoc
+     * @inheritdoc
      */
     protected static array $renamedSettings = [
         'activateAccountFailurePath' => 'invalidUserTokenPath',
@@ -74,6 +74,7 @@ class GeneralConfig extends BaseConfig
      *
      * - `useShapes` – Whether shapes should be used to represent statuses.
      * - `underlineLinks` – Whether links should be underlined.
+     * - `disableAutofocus` – Whether inputs should make use of the `autofocus` attribute.
      * - `notificationDuration` – How long notifications should be shown before they disappear automatically (in
      *   milliseconds). Set to `0` to show them indefinitely.
      *
@@ -89,6 +90,7 @@ class GeneralConfig extends BaseConfig
     public array $accessibilityDefaults = [
         'useShapes' => false,
         'underlineLinks' => false,
+        'disableAutofocus' => false,
         'notificationDuration' => 5000,
     ];
 

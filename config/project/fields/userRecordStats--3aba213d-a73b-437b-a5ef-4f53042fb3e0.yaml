@@ -1,5 +1,4 @@
 columnSuffix: shoaczci
-contentColumnType: boolean
 handle: userRecordStats
 instructions: null
 name: 'User record stats'

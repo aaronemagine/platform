@@ -1,12 +1,10 @@
 columnSuffix: ummvwsjt
-contentColumnType: text
 handle: runtime
 instructions: null
 name: Runtime
 searchable: false
 settings:
   addRowLabel: 'Add a row'
-  columnType: text
   columns:
     __assoc__:
       -

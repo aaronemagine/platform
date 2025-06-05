@@ -2,12 +2,6 @@ isPublic: true
 name: 'Public Schema'
 scope:
   - 'sites.f957802c-8f19-44d3-a30a-668d452862ac:read' # Emagine VR Analytics
-  - 'usergroups.everyone:read'
-  - 'sections.38875b9f-df2c-41e6-a1a2-e9d4ed370735:edit' # Headsets
-  - 'sections.cb843ec5-3aaa-44ea-94cf-f99f4023642f:edit' # Statistics
-  - 'sections.38875b9f-df2c-41e6-a1a2-e9d4ed370735:create' # Headsets
-  - 'sections.38875b9f-df2c-41e6-a1a2-e9d4ed370735:save' # Headsets
-  - 'sections.b3e8c798-1f09-4ca2-ac30-695d0273d094:read' # Movies
+  - 'sites.9d44ec00-9f8f-426a-9ff0-3ed368bea372:read' # Emagine Analytics FR
   - 'sections.cb843ec5-3aaa-44ea-94cf-f99f4023642f:read' # Statistics
-  - 'sections.cb843ec5-3aaa-44ea-94cf-f99f4023642f:create' # Statistics
-  - 'sections.cb843ec5-3aaa-44ea-94cf-f99f4023642f:save' # Statistics
+  - 'usergroups.everyone:read'

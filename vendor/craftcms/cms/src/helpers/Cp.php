@@ -631,7 +631,14 @@ $('#' + $id).on('activate', (ev) => {
   } else {
     // focus on the button so that when the slideout is closed, it's returned to the button
     $(ev.currentTarget).focus();
-    Craft.createElementEditor($elementType, $settings);
+
+    const settings = $settings;
+    // if settings have draftId but the replaced card doesn't have the data-draft-id attribute anymore,
+    // remove the draftId from the settings before creating element editor, so the correct element can be retrieved
+    if (settings.draftId && !Garnish.hasAttr($(ev.currentTarget).parents('.card'), 'data-draft-id')) {
+      delete settings.draftId;
+    }
+    Craft.createElementEditor($elementType, settings);
   }
 });
 JS, [
@@ -2780,16 +2787,6 @@ JS, [
                 'class' => ['element', 'card'],
             ]);
 
-        // get thumb placeholder
-        if ($showThumb ?? $fieldLayout->getThumbField() !== null) {
-            $previewThumb = Html::tag('div',
-                Html::tag('div', Cp::iconSvg('image'), ['class' => 'cp-icon']),
-                ['class' => 'cvd-thumbnail']
-            );
-
-            $previewHtml .= Html::tag('div', $previewThumb, ['class' => ['thumb']]);
-        }
-
         $previewHtml .=
             Html::tag('div', options: ['class' => 'card-titlebar']) .
             Html::beginTag('div', ['class' => 'card-main']) .
@@ -2823,7 +2820,19 @@ JS, [
 
         $previewHtml .=
             Html::endTag('div') . // .card-body
-            Html::endTag('div') . // .card-content
+            Html::endTag('div'); // .card-content
+
+        // get thumb placeholder
+        if ($showThumb ?? $fieldLayout->getThumbField() !== null) {
+            $previewThumb = Html::tag('div',
+                Html::tag('div', Cp::iconSvg('image'), ['class' => 'cp-icon']),
+                ['class' => 'cvd-thumbnail']
+            );
+
+            $previewHtml .= Html::tag('div', $previewThumb, ['class' => ['thumb']]);
+        }
+
+        $previewHtml .=
             Html::endTag('div') . // .card-main
             Html::tag('div', '', ['class' => 'spinner spinner-absolute']) .
             Html::endTag('div'); // .element.card

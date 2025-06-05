@@ -275,7 +275,7 @@ class UsersController extends Controller
         // if we're impersonating, pass the user we're impersonating to the complete method
         $impersonator = $userSession->getImpersonator();
         if ($impersonator !== null) {
-            $user = $impersonator;
+            $user = Craft::$app->getUser()->getIdentity();
         }
 
         return $this->_completeLogin($user, $duration);
@@ -1441,6 +1441,7 @@ JS);
     {
         $this->getView()->registerAssetBundle(AuthMethodSetupAsset::class);
 
+        $this->response->setNoCacheHeaders();
         return $this->renderTemplate('_special/setup-2fa.twig', templateMode: View::TEMPLATE_MODE_CP);
     }
 

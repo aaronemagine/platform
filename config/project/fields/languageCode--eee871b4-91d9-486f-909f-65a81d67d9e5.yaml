@@ -1,5 +1,4 @@
 columnSuffix: gtssgjsc
-contentColumnType: string(8)
 handle: languageCode
 instructions: null
 name: 'language code'
@@ -8,7 +7,6 @@ settings:
   byteLimit: null
   charLimit: 2
   code: false
-  columnType: null
   initialRows: 4
   multiline: false
   placeholder: null

@@ -1,5 +1,4 @@
 columnSuffix: null
-contentColumnType: string
 handle: headset
 instructions: null
 name: Headset
@@ -7,28 +6,20 @@ searchable: false
 settings:
   allowSelfRelations: false
   branchLimit: null
-  localizeRelations: false
+  defaultPlacement: end
   maintainHierarchy: false
   maxRelations: 1
   minRelations: 1
-  selectionCondition:
-    __assoc__:
-      -
-        - elementType
-        - craft\elements\Entry
-      -
-        - fieldContext
-        - global
-      -
-        - class
-        - craft\elements\conditions\entries\EntryCondition
   selectionLabel: null
+  showCardsInGrid: false
   showSiteMenu: false
+  showUnpermittedEntries: true
+  showUnpermittedSections: true
   sources:
     - 'section:38875b9f-df2c-41e6-a1a2-e9d4ed370735' # Headsets
   targetSiteId: null
   validateRelatedElements: false
   viewMode: null
 translationKeyFormat: null
-translationMethod: site
+translationMethod: none
 type: craft\fields\Entries

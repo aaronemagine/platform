@@ -2,16 +2,19 @@ isPublic: false
 name: 'Stats Schema'
 scope:
   - 'sites.f957802c-8f19-44d3-a30a-668d452862ac:read' # Emagine VR Analytics
-  - 'usergroups.32c28836-80b3-4da9-a427-6d42b223613b:read' # Clients
-  - 'sections.38875b9f-df2c-41e6-a1a2-e9d4ed370735:edit' # Headsets
-  - 'sections.cb843ec5-3aaa-44ea-94cf-f99f4023642f:edit' # Statistics
-  - 'sections.394fd145-7cff-4ee6-be0a-bf15e22ffbb5:read' # Languages
-  - 'sections.738d7c8a-3444-45a3-b76c-228216046660:read' # Tablet
+  - 'sites.9d44ec00-9f8f-426a-9ff0-3ed368bea372:read' # Emagine Analytics FR
   - 'sections.38875b9f-df2c-41e6-a1a2-e9d4ed370735:read' # Headsets
-  - 'sections.38875b9f-df2c-41e6-a1a2-e9d4ed370735:create' # Headsets
-  - 'sections.38875b9f-df2c-41e6-a1a2-e9d4ed370735:save' # Headsets
+  - 'sections.394fd145-7cff-4ee6-be0a-bf15e22ffbb5:read' # Languages
   - 'sections.b3e8c798-1f09-4ca2-ac30-695d0273d094:read' # Movies
   - 'sections.cb843ec5-3aaa-44ea-94cf-f99f4023642f:read' # Statistics
+  - 'sections.738d7c8a-3444-45a3-b76c-228216046660:read' # Tablet
+  - 'sections.fa1a9449-1cdb-4185-8017-6d6baea8371b:read' # Venues
+  - 'usergroups.everyone:read'
+  - 'usergroups.a5255343-5341-4742-9fd7-dc1f26af404a:read' # Admin
+  - 'usergroups.32c28836-80b3-4da9-a427-6d42b223613b:read' # Clients
+  - 'sections.38875b9f-df2c-41e6-a1a2-e9d4ed370735:edit' # Headsets
+  - 'sections.38875b9f-df2c-41e6-a1a2-e9d4ed370735:create' # Headsets
+  - 'sections.38875b9f-df2c-41e6-a1a2-e9d4ed370735:save' # Headsets
+  - 'sections.cb843ec5-3aaa-44ea-94cf-f99f4023642f:edit' # Statistics
   - 'sections.cb843ec5-3aaa-44ea-94cf-f99f4023642f:create' # Statistics
   - 'sections.cb843ec5-3aaa-44ea-94cf-f99f4023642f:save' # Statistics
-  - 'sections.fa1a9449-1cdb-4185-8017-6d6baea8371b:read' # Venues

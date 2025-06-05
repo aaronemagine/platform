@@ -2425,7 +2425,7 @@ JS,[
     }
 
     /**
-     * Returns the file’s MIME type, if it can be determined.
+     * Returns the file’s MIME type based on its extension, if it can be determined.
      *
      * @param ImageTransform|string|array|null $transform A transform handle or configuration that should be applied to the mime type
      * @return string|null

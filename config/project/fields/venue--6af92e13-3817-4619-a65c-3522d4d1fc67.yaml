@@ -1,5 +1,4 @@
 columnSuffix: knhntkbg
-contentColumnType: string
 handle: venue
 instructions: null
 name: Venue
@@ -7,28 +6,20 @@ searchable: false
 settings:
   allowSelfRelations: false
   branchLimit: null
-  localizeRelations: false
+  defaultPlacement: end
   maintainHierarchy: false
   maxRelations: 1
   minRelations: null
-  selectionCondition:
-    __assoc__:
-      -
-        - elementType
-        - craft\elements\Entry
-      -
-        - fieldContext
-        - global
-      -
-        - class
-        - craft\elements\conditions\entries\EntryCondition
   selectionLabel: null
+  showCardsInGrid: false
   showSiteMenu: true
+  showUnpermittedEntries: true
+  showUnpermittedSections: true
   sources:
     - 'section:fa1a9449-1cdb-4185-8017-6d6baea8371b' # Venues
   targetSiteId: null
   validateRelatedElements: false
   viewMode: null
 translationKeyFormat: null
-translationMethod: site
+translationMethod: none
 type: craft\fields\Entries

@@ -1,5 +1,4 @@
 columnSuffix: lcoaswav
-contentColumnType: boolean
 handle: userNeedInternet
 instructions: null
 name: 'User need internet'

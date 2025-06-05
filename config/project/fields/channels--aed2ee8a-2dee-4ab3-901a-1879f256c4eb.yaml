@@ -1,5 +1,4 @@
 columnSuffix: null
-contentColumnType: string
 handle: channels
 instructions: null
 name: Channels
@@ -7,28 +6,20 @@ searchable: false
 settings:
   allowSelfRelations: false
   branchLimit: null
-  localizeRelations: false
+  defaultPlacement: end
   maintainHierarchy: false
   maxRelations: null
   minRelations: 1
-  selectionCondition:
-    __assoc__:
-      -
-        - elementType
-        - craft\elements\Entry
-      -
-        - fieldContext
-        - global
-      -
-        - class
-        - craft\elements\conditions\entries\EntryCondition
   selectionLabel: null
+  showCardsInGrid: false
   showSiteMenu: true
+  showUnpermittedEntries: true
+  showUnpermittedSections: true
   sources:
     - 'section:394fd145-7cff-4ee6-be0a-bf15e22ffbb5' # Languages
   targetSiteId: null
   validateRelatedElements: false
   viewMode: null
 translationKeyFormat: null
-translationMethod: site
+translationMethod: none
 type: craft\fields\Entries

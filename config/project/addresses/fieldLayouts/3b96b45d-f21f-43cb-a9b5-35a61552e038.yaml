@@ -7,9 +7,12 @@ tabs:
         autocomplete: false
         autocorrect: true
         class: null
+        dateAdded: null
         disabled: false
         elementCondition: null
         id: null
+        includeInCards: false
+        inputType: null
         instructions: null
         label: null
         max: null
@@ -17,6 +20,7 @@ tabs:
         name: null
         orientation: null
         placeholder: null
+        providesThumbs: false
         readonly: false
         requirable: false
         size: null
@@ -30,11 +34,14 @@ tabs:
         width: 100
       -
         attribute: countryCode
+        dateAdded: null
         elementCondition: null
         id: null
+        includeInCards: false
         instructions: null
         label: null
         orientation: null
+        providesThumbs: false
         requirable: false
         tip: null
         type: craft\fieldlayoutelements\addresses\CountryCodeField
@@ -43,9 +50,12 @@ tabs:
         warning: null
         width: 100
       -
+        dateAdded: null
         elementCondition: null
+        includeInCards: true
         instructions: null
         label: null
+        providesThumbs: false
         required: false
         tip: null
         type: craft\fieldlayoutelements\addresses\AddressField

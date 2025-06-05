@@ -27,7 +27,7 @@ final class StatsService extends Component
             ->section('statistics')
             ->siteId('*')
             ->status(null)              // include drafts/revisions if needed
-            ->with(['visitStart', 'visitLanguage', 'venue', 'movie', 'headset']);
+            ->with([ 'venue', 'movie', 'headset']);
     }
 
     public function getLanguageMap(): array
@@ -52,6 +52,8 @@ final class StatsService extends Component
      */
     public function getTotalVisitsCount(?int $userId = null): int
     {
+        $userId ??= \Craft::$app->user->id;
+        
         $query = $this->baseQuery();
         if ($userId) {
             $query->authorId($userId);
@@ -80,29 +82,59 @@ final class StatsService extends Component
         );
 
         $entries = $this->baseQuery()
+            // remove 'visitStart' and 'visitLanguage' from ->with()
+            ->with([
+                'venue',
+                'movie',
+                'headset',
+            ])
             ->visitStart([
-                 'and',
-                 '>= ' . $weekStart->format(DateTime::ATOM),
-                 '< '  . $weekEnd ->format(DateTime::ATOM),
-             ])
+                'and',
+                '>= ' . $weekStart->format(DateTime::ATOM),
+                '< '  . $weekEnd ->format(DateTime::ATOM),
+            ])
             ->authorId($userId)
             ->siteId($selectedSiteId ?? '*')
             ->all();
 
         /** @var Entry $entry */
         foreach ($entries as $entry) {
-            /** @var \DateTime $visitStart */
+            // 1) pull the raw DateTime from visitStart
             $visitStart = $entry->getFieldValue('visitStart');
-            $dayKey     = $visitStart->format('Y-m-d');
-            $lang       = strtolower($entry->getFieldValue('visitLanguage') ?? 'unknown');
+            if (!($visitStart instanceof DateTime)) {
+                \Craft::info(
+                    "StatsService::calculateWeeklyStats → Entry #{$entry->id} → visitStart is "
+                . (is_object($visitStart) ? get_class($visitStart) : gettype($visitStart))
+                . "; skipping.",
+                    __METHOD__
+                );
+                continue;
+            }
 
-            // normalise to provided label (handles i18n day names)
+            $dayKey = $visitStart->format('Y-m-d');
+
+            // 2) pull visitLanguage as a plain string (it was a plain‐text field)
+            $rawLang = $entry->getFieldValue('visitLanguage');
+            if (is_string($rawLang)) {
+                $lang = strtolower(trim($rawLang)) ?: 'unknown';
+            } else {
+                \Craft::info(
+                    "StatsService::calculateWeeklyStats → Entry #{$entry->id} → visitLanguage is "
+                . (is_object($rawLang) ? get_class($rawLang) : gettype($rawLang))
+                . "; using \"unknown\".",
+                    __METHOD__
+                );
+                $lang = 'unknown';
+            }
+
+            // 3) make sure that dayKey exists in our initialized arrays
             if (!isset($languageDayData[$dayKey])) {
                 $languageDayData[$dayKey] = array_fill_keys(array_keys($this->getLanguageMap()), 0);
             }
 
-            $languageDayData[$dayKey][$lang]  = ($languageDayData[$dayKey][$lang] ?? 0) + 1;
-            $totalVisitsPerDay[$dayKey]       = ($totalVisitsPerDay[$dayKey]      ?? 0) + 1;
+            // 4) tally
+            $languageDayData[$dayKey][$lang] = ($languageDayData[$dayKey][$lang] ?? 0) + 1;
+            $totalVisitsPerDay[$dayKey]      = ($totalVisitsPerDay[$dayKey]      ?? 0) + 1;
         }
 
         return [
@@ -111,27 +143,41 @@ final class StatsService extends Component
         ];
     }
 
-    /* ---------------------------------------------------------------------
-     * Monthly stats (ElementQuery+Collection)
-     * -------------------------------------------------------------------*/
+        /* ---------------------------------------------------------------------
+        * Monthly stats (ElementQuery+Collection)
+        * -------------------------------------------------------------------*/
 
-    public function calculateMonthlyStats(?string $monthParam = null, ?int $userId = null): array
+        public function calculateMonthlyStats(?string $monthParam = null, ?int $userId = null): array
     {
-        $context   = $monthParam ? new DateTime($monthParam) : new DateTime('today');
-        $from      = (clone $context)->modify('first day of this month')->setTime(0, 0);
-        $to        = (clone $context)->modify('last day of this month')->setTime(23, 59, 59);
+        // 1) Determine the date range for the month
+        $context   = $monthParam
+            ? new DateTime($monthParam)
+            : new DateTime('today');
+        $from = (clone $context)->modify('first day of this month')->setTime(0, 0, 0);
+        $to   = (clone $context)->modify('last day of this month')->setTime(23, 59, 59);
+
         $languageMap = $this->getLanguageMap();
 
-        $entries = $this->baseQuery()
+        // 2) Fetch all “statistics” entries in that range, from any site,
+        //    optionally filtered by authorId. Do NOT eager‐load visitLanguage.
+        $entries = Entry::find()
+            ->section('statistics')
+            ->siteId('*')
+            ->status(null)    // include drafts/revisions if needed
+            ->with([          // eager‐load only non–Date/text fields
+                'venue',
+                'movie',
+                'headset',
+            ])
             ->visitStart([
-                 'and',
-                 '>= ' . $from->format(\DateTime::ATOM),
-                 '< '  . $to->format(\DateTime::ATOM),
-             ])
+                'and',
+                '>= ' . $from->format(\DateTime::ATOM),
+                '<= ' . $to->format(\DateTime::ATOM),
+            ])
             ->authorId($userId)
             ->all();
 
-        // group by ISO week number
+        // 3) Group by ISO week number (so we can build “Week 22”, “Week 23”, etc.)
         $grouped = (new Collection($entries))
             ->groupBy(fn(Entry $e) => (int)$e->dateCreated->format('W'));
 
@@ -140,33 +186,65 @@ final class StatsService extends Component
         $totalVisitsPerWeek   = [];
 
         foreach ($grouped as $weekNum => $weekEntries) {
-            $weekKey = Craft::$app->locale->id === 'fr' ? "Semaine $weekNum" : "Week $weekNum";
+            // Build a label like “Week 23” (or “Semaine 23” if locale is French)
+            $weekKey = Craft::$app->locale->id === 'fr'
+                ? "Semaine $weekNum"
+                : "Week $weekNum";
             $weekLabels[] = $weekKey;
 
+            // Initialize every language’s count to zero for this week
             $langCounts = array_fill_keys(array_keys($languageMap), 0);
 
+            /** @var Entry $entry */
             foreach ($weekEntries as $entry) {
-                $lang = strtolower($entry->getFieldValue('visitLanguage') ?? 'unknown');
-                $langCounts[$lang] = ($langCounts[$lang] ?? 0) + 1;
+                //
+                // 3a) Resolve visitLanguage as a plain string (it’s a plaintext field)
+                //
+                $rawLang = $entry->getFieldValue('visitLanguage');
+                if (\is_string($rawLang)) {
+                    $langCode = trim($rawLang) !== ''
+                        ? strtolower($rawLang)
+                        : 'unknown';
+                } else {
+                    // If it somehow isn’t a string, log & treat as “unknown”
+                    \Craft::info(
+                        "StatsService::calculateMonthlyStats → "
+                    . "Entry #{$entry->id} → visitLanguage is "
+                    . (is_object($rawLang) ? get_class($rawLang) : gettype($rawLang))
+                    . "; using “unknown”.",
+                        __METHOD__
+                    );
+                    $langCode = 'unknown';
+                }
+
+                // Tally into this week’s bucket
+                if (!isset($langCounts[$langCode])) {
+                    // in case the field returned something unexpected
+                    $langCounts[$langCode] = 0;
+                }
+                $langCounts[$langCode]++;
             }
 
-            foreach ($langCounts as $lang => $count) {
-                $weeklyLanguageVisits[$lang][$weekKey] = $count;
+            // 3b) Copy that week’s language counts into our final structure
+            foreach ($langCounts as $code => $count) {
+                $weeklyLanguageVisits[$code][$weekKey] = $count;
             }
+
+            // 3c) Totals across all languages for this week
             $totalVisitsPerWeek[$weekKey] = array_sum($langCounts);
         }
 
-        // Totals across all weeks
+        // 4) Also compute grand totals per language for the entire month
         $languageCounts = array_map(
-            fn($lang) => array_sum($weeklyLanguageVisits[$lang] ?? []),
+            fn($code) => array_sum($weeklyLanguageVisits[$code] ?? []),
             array_keys($languageMap)
         );
 
         return [
-            'weekLabels'            => $weekLabels,
-            'weeklyLanguageVisits'  => $weeklyLanguageVisits,
-            'totalVisitsPerWeek'    => $totalVisitsPerWeek,
-            'languageCounts'        => $languageCounts,
+            'weekLabels'           => $weekLabels,
+            'weeklyLanguageVisits' => $weeklyLanguageVisits,
+            'totalVisitsPerWeek'   => $totalVisitsPerWeek,
+            'languageCounts'       => $languageCounts,
         ];
     }
 
@@ -176,28 +254,86 @@ final class StatsService extends Component
 
     public function getTodayVisitsByTimeAndLanguage(?string $dayParam = null, ?int $userId = null): array
     {
-        $day   = $dayParam ? new DateTime($dayParam) : new DateTime('today');
-        $from  = (clone $day)->setTime(0, 0);
-        $to    = (clone $from)->modify('+1 day');
+        // 1) Build the “today” window (from 00:00:00 of $dayParam to 00:00:00 of next day)
+        $day  = $dayParam
+            ? new \DateTime($dayParam)
+            : new \DateTime('today');
+        $from = (clone $day)->setTime(0, 0, 0);      // e.g. 2025-06-02T00:00:00
+        $to   = (clone $from)->modify('+1 day');     // e.g. 2025-06-03T00:00:00
 
-        $entries = $this->baseQuery()
-             ->visitStart([
-                 'and',
-                 '>= ' . $from->format(\DateTime::ATOM),
-                 '< '  . $to->format(\DateTime::ATOM),
-             ])
+        // 2) Fetch all “statistics” entries from any site in that window,
+        //    optionally filtered by authorId.
+        //    Note: remove 'visitLanguage' from ->with() so that getFieldValue('visitLanguage') returns a string
+        $entries = \craft\elements\Entry::find()
+            ->section('statistics')
+            ->siteId('*')
+            ->status(null)
+            ->with([
+                // 'visitLanguage',   ← removed here
+                'venue',
+                'movie',
+                'headset',
+            ])
+            ->visitStart([
+                'and',
+                '>= ' . $from->format(\DateTime::ATOM),
+                '< '  . $to->format(\DateTime::ATOM),
+            ])
             ->authorId($userId)
             ->all();
 
+        // 3) Initialize the output structure:
+        //    [ "HH:MM" => [ "en" => count, "fr" => count, … ], … ]
         $out = [];
 
         foreach ($entries as $entry) {
-            /** @var DateTime $visitStart */
-            $visitStart = $entry->getFieldValue('visitStart');
-            $block = $visitStart->format('H') . ':' . ($visitStart->format('i') < 30 ? '00' : '30');
-            $lang  = strtolower($entry->getFieldValue('visitLanguage') ?? 'unknown');
+            // 3a) Raw "visitStart" field value.
+            $rawStart = $entry->getFieldValue('visitStart');
+            if (!($rawStart instanceof \DateTime)) {
+                // If it isn’t a DateTime, log and skip
+                \Craft::info(
+                    "StatsService::getTodayVisitsByTimeAndLanguage → "
+                . "Entry #{$entry->id} → visitStart is "
+                . (is_object($rawStart) ? get_class($rawStart) : gettype($rawStart))
+                . "; skipping.",
+                    __METHOD__
+                );
+                continue;
+            }
 
-            $out[$block][$lang] = ($out[$block][$lang] ?? 0) + 1;
+            // 3b) Build “HH:MM” key (00 or 30).
+            $hour   = (int) $rawStart->format('H');
+            $minute = (int) $rawStart->format('i');
+            $slot   = sprintf('%02d:%02d', $hour, $minute < 30 ? 0 : 30);
+
+            // 3c) Grab visitLanguage as a plain string.
+            $langField = $entry->getFieldValue('visitLanguage');
+            // Now that we're not eager‐loading it, getFieldValue should be a string like "EN"
+            if (is_string($langField)) {
+                $langCode = strtolower(trim($langField));
+                if ($langCode === '') {
+                    $langCode = 'unknown';
+                }
+            } else {
+                // If it somehow still isn't a string, dump its type and fall back to "unknown"
+                \Craft::info(
+                    "StatsService::getTodayVisitsByTimeAndLanguage → "
+                . "Entry #{$entry->id} → visitLanguage is "
+                . (is_object($langField) ? get_class($langField) : gettype($langField))
+                . "; falling back to \"unknown\".",
+                    __METHOD__
+                );
+                $langCode = 'unknown';
+            }
+
+            // 3d) Tally it into $out[$slot][$langCode]
+            if (!isset($out[$slot])) {
+                $out[$slot] = [];
+            }
+            if (!isset($out[$slot][$langCode])) {
+                $out[$slot][$langCode] = 0;
+            }
+            $out[$slot][$langCode]++;
         }
 
         return $out;
@@ -209,43 +345,172 @@ final class StatsService extends Component
 
     public function getTotalVisitsPerLanguage(?int $userId = null): array
     {
-        $userId ??= \Craft::$app->user->id;
+        // 1) Build a fresh query without eager‐loading visitLanguage:
+        $query = Entry::find()
+            ->section('statistics')
+            ->siteId('*')
+            ->status(null)
+            ->authorId($userId);
 
-        return $this->baseQuery()
-            ->authorId($userId)
-            ->collect()
-            ->groupBy(fn($e) => strtolower($e->getFieldValue('visitLanguage') ?? 'unknown'))
-            ->map(fn($g) => $g->count())
-            ->sortDesc()
-            ->all();
+        // 2) Fetch all matching entries:
+        $entries = $query->all();
+
+        // 3) Tally up the counts by reading getFieldValue('visitLanguage') as a string:
+        $counts = [];
+        foreach ($entries as $entry) {
+            // getFieldValue(...) will now return the raw text (e.g. "EN", "BA", …), or null if unset
+            $rawLang = $entry->getFieldValue('visitLanguage');
+
+            if (is_string($rawLang) && trim($rawLang) !== '') {
+                $langCode = strtolower(trim($rawLang));
+            } else {
+                $langCode = 'unknown';
+            }
+
+            if (!isset($counts[$langCode])) {
+                $counts[$langCode] = 0;
+            }
+            $counts[$langCode]++;
+        }
+
+        // 4) Sort descending and return
+        arsort($counts);
+        return $counts;
     }
 
-    public function getTotalVisitsPerVenue(?int $userId = null): array
-    {
+        public function getTotalVisitsPerVenue(?int $userId = null): array
+        {
+            $userId ??= \Craft::$app->user->id;
+
+            return $this->baseQuery()
+                ->authorId($userId)
+                ->collect()
+                ->map(fn($e) => $e->venue->one()?->title)
+                ->filter()
+                ->countBy()
+                ->sortDesc()
+                ->all();
+        }
+
+
+    /**
+     * Returns an array of [ languageCode => count ] for all visits
+     * to a single movie, filtered by the logged-in user and optional dates.
+     *
+     * @param string      $movieTitle  The exact title of the movie
+     * @param string|null $from        Y-m-d or null = all time
+     * @param string|null $to          Y-m-d or null = all time
+     * @param int|null    $userId      Defaults to current user
+     * @return array<string,int>       e.g. ['en'=>12,'fr'=>5,'es'=>0,…]
+     */
+    public function getVisitsPerMovie(
+        string  $movieTitle,
+        ?string $from   = null,
+        ?string $to     = null,
+        ?int    $userId = null
+    ): array {
+        // 1) Default to current user if none passed
         $userId ??= \Craft::$app->user->id;
 
-        return $this->baseQuery()
-            ->authorId($userId)
-            ->collect()
-            ->map(fn($e) => $e->venue->one()?->title)
-            ->filter()
-            ->countBy()
-            ->sortDesc()
-            ->all();
-    }
+        // 2) Build the base “statistics” query for that user,
+        //    WITHOUT eager-loading visitLanguage (so it won’t come back as ElementCollection).
+        $query = $this->baseQuery()
+            ->authorId($userId);
 
-    public function getTotalVisitsPerMovie(?int $userId = null): array
-    {
-        $userId ??= \Craft::$app->user->id;
+        // 3) Apply optional date filtering
+        if ($from || $to) {
+            $start = $from
+                ? \DateTime::createFromFormat('Y-m-d', $from)->setTime(0, 0, 0)
+                : new \DateTime('1970-01-01');
+            $end = $to
+                ? \DateTime::createFromFormat('Y-m-d', $to)->setTime(23, 59, 59)
+                : new \DateTime('now');
 
-        return $this->baseQuery()
-            ->authorId($userId)
-            ->collect()
-            ->map(fn($e) => $e->movie->one()?->title)
-            ->filter()
-            ->countBy()
-            ->sortDesc()
-            ->all();
+            $query->visitStart([
+                'and',
+                '>= ' . $start->format(\DateTime::ATOM),
+                '<= ' . $end  ->format(\DateTime::ATOM),
+            ]);
+        }
+
+        // 4) Tally only entries whose related movie's title matches $movieTitle
+        $counts = [];
+        foreach ($query->all() as $entry) {
+            // 4a) Grab the “movie” field (Entries relationship)
+            $movieField = $entry->getFieldValue('movie');
+            $relatedMovieTitle = null;
+
+            if ($movieField instanceof \craft\elements\db\ElementQueryInterface) {
+                // Still an ElementQuery: fetch the first Entry
+                $related = $movieField->one();
+                if ($related instanceof \craft\elements\Entry) {
+                    $relatedMovieTitle = $related->title;
+                }
+            } elseif ($movieField instanceof \craft\elements\ElementCollection) {
+                // If this was eager-loaded as a collection for some reason:
+                $related = $movieField->one();
+                if ($related instanceof \craft\elements\Entry) {
+                    $relatedMovieTitle = $related->title;
+                }
+            } elseif ($movieField instanceof \craft\elements\ElementInterface) {
+                // If the field was set to return a single Entry
+                $relatedMovieTitle = $movieField->title;
+            } elseif (is_string($movieField) || is_numeric($movieField)) {
+                // If it returned a plain string (unlikely for an Entries field)
+                $relatedMovieTitle = (string)$movieField;
+            }
+
+            // 4b) If the movie title doesn’t match exactly, skip
+            if ($relatedMovieTitle === null || $relatedMovieTitle !== $movieTitle) {
+                continue;
+            }
+
+            // 4c) Now extract “visitLanguage” in raw form
+            //     (we did NOT eager-load it, so it can be ElementQueryInterface, ElementCollection, Entry, or string)
+            $langField = $entry->getFieldValue('visitLanguage');
+            $langCode = 'unknown';
+
+            if ($langField instanceof \craft\elements\db\ElementQueryInterface) {
+                // Not yet fetched: call ->one()
+                $relatedLangEntry = $langField->one();
+                if ($relatedLangEntry instanceof \craft\elements\Entry) {
+                    // Assuming your language entries use “slug” as the code
+                    $langCode = (string)$relatedLangEntry->slug;
+                }
+            }
+            elseif ($langField instanceof \craft\elements\ElementCollection) {
+                // If it was eager-loaded as a collection, just take the first Entry
+                $relatedLangEntry = $langField->one();
+                if ($relatedLangEntry instanceof \craft\elements\Entry) {
+                    $langCode = (string)$relatedLangEntry->slug;
+                }
+            }
+            elseif ($langField instanceof \craft\elements\ElementInterface) {
+                // If the field returns a single Entry
+                $langCode = (string)$langField->slug;
+            }
+            elseif (is_string($langField) || is_numeric($langField)) {
+                // Plain text (e.g. “EN”)
+                $langCode = (string)$langField;
+            }
+
+            // 4d) Normalize: lowercase or “unknown” if blank
+            $langCode = trim($langCode) !== ''
+                    ? strtolower($langCode)
+                    : 'unknown';
+
+            // 4e) Increment tally
+            $counts[$langCode] = ($counts[$langCode] ?? 0) + 1;
+        }
+
+        // 5) Ensure every known language appears (even if zero)
+        foreach (array_keys($this->getLanguageMap()) as $lc) {
+            if (!isset($counts[$lc])) {
+                $counts[$lc] = 0;
+            }
+        }
+
+        return $counts;
     }
 
 
@@ -571,9 +836,9 @@ final class StatsService extends Component
      * to a single movie, filtered by the logged-in user and optional dates.
      *
      * @param string      $movieTitle  The exact title of the movie
-     * @param string|null $from        Y-m-d or null = all time
-     * @param string|null $to          Y-m-d or null = all time
-     * @param int|null    $userId      Defaults to current user
+     * @param string|null $from        Y-m-d (inclusive) or null = no start bound
+     * @param string|null $to          Y-m-d (inclusive) or null = no end bound
+     * @param int|null    $userId      Defaults to current user if null
      * @return array<string,int>       e.g. ['en'=>12,'fr'=>5,'es'=>0,…]
      */
     public function getVisitsPerLanguageForMovie(
@@ -582,39 +847,112 @@ final class StatsService extends Component
         ?string $to     = null,
         ?int    $userId = null
     ): array {
+        // 1) Default to current user if none passed
         $userId ??= \Craft::$app->user->id;
 
-        // 1) build the base “statistics” query for that user
-        $query = $this->baseQuery()->authorId($userId);
+        // 2) Build the base “statistics” query for that user,
+        //    WITHOUT eager-loading visitLanguage (so it won’t come back as ElementCollection).
+        $query = $this->baseQuery()
+            ->authorId($userId);
 
-        // 2) apply optional date filtering
+        // 3) Apply optional date filtering: from 00:00:00 of $from to 23:59:59 of $to
         if ($from || $to) {
             $start = $from
-                ? \DateTime::createFromFormat('Y-m-d', $from)->setTime(0,0,0)
+                ? \DateTime::createFromFormat('Y-m-d', $from)->setTime(0, 0, 0)
                 : new \DateTime('1970-01-01');
             $end = $to
-                ? \DateTime::createFromFormat('Y-m-d', $to)->setTime(23,59,59)
+                ? \DateTime::createFromFormat('Y-m-d', $to)->setTime(23, 59, 59)
                 : new \DateTime('now');
 
             $query->visitStart([
                 'and',
                 '>= ' . $start->format(\DateTime::ATOM),
-                '<= ' . $end  ->format(\DateTime::ATOM),
+                '<= ' . $end->format(\DateTime::ATOM),
             ]);
         }
 
-        // 3) tally only entries whose related movie's title matches
+        // 4) Loop through each “statistics” entry, but only count those whose “movie”
+        //    relationship exactly matches $movieTitle.
         $counts = [];
         foreach ($query->all() as $entry) {
-            $movie = $entry->movie->one();
-            if (!$movie || $movie->title !== $movieTitle) {
+            // 4a) Resolve the “movie” field (Entries relationship)
+            $movieField = $entry->getFieldValue('movie');
+            $relatedMovieTitle = null;
+
+            if ($movieField instanceof \craft\elements\db\ElementQueryInterface) {
+                $rel = $movieField->one();
+                if ($rel instanceof \craft\elements\Entry) {
+                    $relatedMovieTitle = $rel->title;
+                }
+            }
+            elseif ($movieField instanceof \craft\elements\ElementCollection) {
+                $rel = $movieField->one();
+                if ($rel instanceof \craft\elements\Entry) {
+                    $relatedMovieTitle = $rel->title;
+                }
+            }
+            elseif ($movieField instanceof \craft\elements\ElementInterface) {
+                $relatedMovieTitle = $movieField->title;
+            }
+            elseif (is_string($movieField) || is_numeric($movieField)) {
+                $relatedMovieTitle = (string)$movieField;
+            }
+
+            if ($relatedMovieTitle === null || $relatedMovieTitle !== $movieTitle) {
+                // Skip any entry whose movie-title does not match exactly
                 continue;
             }
-            $lang = strtolower($entry->getFieldValue('visitLanguage') ?? 'unknown');
-            $counts[$lang] = ($counts[$lang] ?? 0) + 1;
+
+            // 4b) Now inspect visitLanguage—but do NOT call strtolower() yet.
+            $langField = $entry->getFieldValue('visitLanguage');
+
+            // Log the raw return‐value, so you can inspect in storage/logs/web.log
+            \Craft::info(
+                "StatsService::getVisitsPerLanguageForMovie → Entry #{$entry->id} raw visitLanguage is "
+                . (
+                    is_object($langField)
+                        ? get_class($langField)
+                        : gettype($langField)
+                )
+                . " → “" . (string)$langField . "”",
+                __METHOD__
+            );
+
+            $langCode = 'unknown';
+
+            if ($langField instanceof \craft\elements\db\ElementQueryInterface) {
+                // Not yet fetched: fetch the first related Entry
+                $relLang = $langField->one();
+                if ($relLang instanceof \craft\elements\Entry) {
+                    $langCode = (string)$relLang->slug;
+                }
+            }
+            elseif ($langField instanceof \craft\elements\ElementCollection) {
+                // If it was eager-loaded for some reason:
+                $relLang = $langField->one();
+                if ($relLang instanceof \craft\elements\Entry) {
+                    $langCode = (string)$relLang->slug;
+                }
+            }
+            elseif ($langField instanceof \craft\elements\ElementInterface) {
+                // If the field is set to return a single Entry:
+                $langCode = (string)$langField->slug;
+            }
+            elseif (is_string($langField) || is_numeric($langField)) {
+                // Plain-text (e.g. “EN”)
+                $langCode = (string)$langField;
+            }
+
+            // 4c) Normalize: lowercase, or “unknown” if blank
+            $langCode = trim($langCode) !== ''
+                ? strtolower($langCode)
+                : 'unknown';
+
+            // 4d) Increment the tally
+            $counts[$langCode] = ($counts[$langCode] ?? 0) + 1;
         }
 
-        // 4) ensure every known language appears (even if zero)
+        // 5) Ensure every known language appears (even if zero)
         foreach (array_keys($this->getLanguageMap()) as $lc) {
             if (!isset($counts[$lc])) {
                 $counts[$lc] = 0;
@@ -623,7 +961,6 @@ final class StatsService extends Component
 
         return $counts;
     }
-
 
 
 

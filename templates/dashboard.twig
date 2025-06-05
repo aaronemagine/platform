@@ -46,6 +46,7 @@
     {% set batchSize       = rawBatchSize > 0 ? rawBatchSize : 1 %}
     {% set batchedStats    = sortedStats | batch(batchSize) %}
 
+
     <div class="flex min-h-screen">
       <div class="flex-grow w-full bg-grey-500 p-4">
 

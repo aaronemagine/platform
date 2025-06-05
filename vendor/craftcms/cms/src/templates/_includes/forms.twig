@@ -295,10 +295,10 @@
 {% macro checkboxField(config) %}
     {# label --> checkboxLabel #}
     {% set config = config|merge({
-        fieldset: config.fieldLabel is defined,
+        fieldset: config.fieldset ?? (config.fieldLabel is defined),
         fieldClass: (config.fieldClass ?? [])|explodeClass|push('checkboxfield'),
         id: config.id ?? "checkbox#{random()}",
-        checkboxLabel: config.label ?? null,
+        checkboxLabel: config.checkboxLabel ?? config.label ?? null,
         instructionsPosition: config.instructionsPosition ?? 'after',
     })|withoutKey('label') %}
     {{ _self.field(config, 'template:_includes/forms/checkbox') }}

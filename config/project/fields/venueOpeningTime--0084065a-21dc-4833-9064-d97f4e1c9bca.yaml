@@ -1,5 +1,4 @@
 columnSuffix: xsmoaddn
-contentColumnType: time
 handle: venueOpeningTime
 instructions: null
 name: 'Venue Opening Time'

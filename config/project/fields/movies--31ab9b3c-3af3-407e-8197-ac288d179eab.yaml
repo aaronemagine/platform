@@ -1,5 +1,4 @@
 columnSuffix: null
-contentColumnType: string
 handle: movies
 instructions: 'Pick the movie(s) you want to download on this headset'
 name: Movies
@@ -7,28 +6,20 @@ searchable: false
 settings:
   allowSelfRelations: false
   branchLimit: null
-  localizeRelations: false
+  defaultPlacement: end
   maintainHierarchy: false
   maxRelations: null
   minRelations: 1
-  selectionCondition:
-    __assoc__:
-      -
-        - elementType
-        - craft\elements\Entry
-      -
-        - fieldContext
-        - global
-      -
-        - class
-        - craft\elements\conditions\entries\EntryCondition
   selectionLabel: null
+  showCardsInGrid: false
   showSiteMenu: false
+  showUnpermittedEntries: true
+  showUnpermittedSections: true
   sources:
     - 'section:b3e8c798-1f09-4ca2-ac30-695d0273d094' # Movies
   targetSiteId: null
   validateRelatedElements: false
   viewMode: null
 translationKeyFormat: null
-translationMethod: site
+translationMethod: none
 type: craft\fields\Entries

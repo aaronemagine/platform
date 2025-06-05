@@ -3,10 +3,122 @@ tabs:
     elementCondition: null
     elements:
       -
+        autocapitalize: true
+        autocomplete: false
+        autocorrect: true
+        class: null
+        dateAdded: null
+        disabled: false
         elementCondition: null
-        fieldUid: 349ff4ce-c3d6-401e-a73d-26ef36146dba # Company Name
+        id: null
+        includeInCards: false
+        inputType: null
         instructions: null
         label: null
+        max: null
+        min: null
+        name: null
+        orientation: null
+        placeholder: null
+        providesThumbs: false
+        readonly: false
+        requirable: false
+        size: null
+        step: null
+        tip: null
+        title: null
+        type: craft\fieldlayoutelements\users\UsernameField
+        uid: 5119ef07-596b-4ad1-b69a-6d95d4217491
+        userCondition: null
+        warning: null
+        width: 100
+      -
+        attribute: fullName
+        autocapitalize: true
+        autocomplete: false
+        autocorrect: true
+        class: null
+        dateAdded: null
+        disabled: false
+        elementCondition: null
+        id: null
+        includeInCards: false
+        inputType: null
+        instructions: null
+        label: null
+        max: null
+        min: null
+        name: null
+        orientation: null
+        placeholder: null
+        providesThumbs: false
+        readonly: false
+        requirable: true
+        required: false
+        size: null
+        step: null
+        tip: null
+        title: null
+        type: craft\fieldlayoutelements\users\FullNameField
+        uid: 5d027a86-8aab-421c-991f-16afdd733f2e
+        userCondition: null
+        warning: null
+        width: 100
+      -
+        dateAdded: null
+        elementCondition: null
+        id: null
+        includeInCards: false
+        instructions: null
+        label: null
+        orientation: null
+        providesThumbs: false
+        requirable: false
+        tip: null
+        type: craft\fieldlayoutelements\users\PhotoField
+        uid: 9dc23ca9-9257-43e1-a9c5-b4b3ff309d09
+        userCondition: null
+        warning: null
+        width: 100
+      -
+        autocapitalize: true
+        autocomplete: false
+        autocorrect: true
+        class: null
+        dateAdded: null
+        disabled: false
+        elementCondition: null
+        id: null
+        includeInCards: false
+        inputType: null
+        instructions: null
+        label: null
+        max: null
+        min: null
+        name: null
+        orientation: null
+        placeholder: null
+        providesThumbs: false
+        readonly: false
+        requirable: false
+        size: null
+        step: null
+        tip: null
+        title: null
+        type: craft\fieldlayoutelements\users\EmailField
+        uid: 362b1bbe-0a1e-440a-a6be-9bc0c3f07b18
+        userCondition: null
+        width: 100
+      -
+        dateAdded: null
+        editCondition: null
+        elementCondition: null
+        fieldUid: 349ff4ce-c3d6-401e-a73d-26ef36146dba # Company Name
+        handle: null
+        includeInCards: false
+        instructions: null
+        label: null
+        providesThumbs: false
         required: false
         tip: null
         type: craft\fieldlayoutelements\CustomField
@@ -15,10 +127,15 @@ tabs:
         warning: null
         width: 100
       -
+        dateAdded: null
+        editCondition: null
         elementCondition: null
         fieldUid: 0207e7b4-d278-47ba-9eda-56e414d8e476 # Kill code
+        handle: null
+        includeInCards: false
         instructions: null
         label: null
+        providesThumbs: false
         required: false
         tip: null
         type: craft\fieldlayoutelements\CustomField

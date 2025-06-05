@@ -1,4 +1,4 @@
-dateModified: 1744997987
+dateModified: 1749056636
 elementSources:
   craft\elements\Entry:
     -
@@ -79,6 +79,7 @@ meta:
     cca433bd-c86d-402b-9734-50cc40b8760d: 'Public Schema' # Public Schema
     d55f6463-5f76-4782-9af7-78a88483b0f0: Headset # Headset
     df793da0-9723-422b-a370-2e9c303381d0: Default # Default
+    e5bb58d7-2c95-4829-b331-a6667a17e00b: Frontend # Frontend
     e57d07b6-2e83-4220-9f88-22aaf1cf9ad0: Default # Default
     eee871b4-91d9-486f-909f-65a81d67d9e5: 'language code' # language code
     f83d583c-7b6a-4dc7-8d00-7bdd51363137: 'Visit Language' # Visit Language
@@ -94,10 +95,410 @@ plugins:
     edition: standard
     enabled: false
     schemaVersion: 1.0.0
+  graphql-authentication:
+    edition: standard
+    enabled: true
+    licenseKey: 1YIOUSOITI0VU7FQ6JF4GRF1
+    schemaVersion: 1.3.0
+    settings:
+      accountCooldown: 'Too many log in attempts; please try again shortly'
+      accountDeleted: 'Successfully deleted account'
+      accountLocked: 'Sorry, your account is currently locked'
+      activationEmailSent: 'You will receive an email if it matches an account in our system'
+      allowMagicAuthentication: '1'
+      allowPasswordlessDelete: null
+      allowRegistration: null
+      allowTwoFactorAuthentication: false
+      allowedFacebookDomains: null
+      allowedGoogleDomains: null
+      allowedMicrosoftDomains: null
+      allowedTwitterDomains: null
+      appleClientId: null
+      appleClientSecret: null
+      appleRedirectUrl: null
+      appleServiceId: null
+      appleServiceSecret: null
+      assetMutations: null
+      assetNotFound: "We couldn't find any matching assets"
+      assetQueries: null
+      emailNotInScope: 'No email in scope'
+      entryMutations: null
+      entryNotFound: "We couldn't find any matching entries"
+      entryQueries: null
+      facebookAppId: null
+      facebookAppSecret: null
+      facebookEmailMismatch: "Email address doesn't match allowed Facebook domains"
+      facebookRedirectUrl: null
+      fieldRestrictions:
+        __assoc__:
+          -
+            - schema-1
+            -
+              __assoc__:
+                -
+                  - adminRecordData
+                  - queryMutate
+                -
+                  - adminRequireInternet
+                  - queryMutate
+                -
+                  - channels
+                  - queryMutate
+                -
+                  - companyLogo
+                  - queryMutate
+                -
+                  - companyName
+                  - queryMutate
+                -
+                  - familiarId
+                  - queryMutate
+                -
+                  - headset
+                  - queryMutate
+                -
+                  - isMono
+                  - queryMutate
+                -
+                  - killCode
+                  - queryMutate
+                -
+                  - languageCode
+                  - queryMutate
+                -
+                  - mode
+                  - queryMutate
+                -
+                  - movie
+                  - queryMutate
+                -
+                  - movies
+                  - queryMutate
+                -
+                  - isMultiFile
+                  - queryMutate
+                -
+                  - runtime
+                  - queryMutate
+                -
+                  - userNeedInternet
+                  - queryMutate
+                -
+                  - userRecordStats
+                  - queryMutate
+                -
+                  - uuid
+                  - queryMutate
+                -
+                  - venue
+                  - queryMutate
+                -
+                  - venueClosingTime
+                  - queryMutate
+                -
+                  - venueCurrencyType
+                  - queryMutate
+                -
+                  - venueOpeningTime
+                  - queryMutate
+                -
+                  - venueTicketPrice
+                  - queryMutate
+                -
+                  - visitLanguage
+                  - queryMutate
+                -
+                  - visitStart
+                  - queryMutate
+          -
+            - schema-Frontend
+            -
+              __assoc__:
+                -
+                  - adminRecordData
+                  - queryMutate
+                -
+                  - adminRequireInternet
+                  - queryMutate
+                -
+                  - channels
+                  - queryMutate
+                -
+                  - companyLogo
+                  - queryMutate
+                -
+                  - companyName
+                  - queryMutate
+                -
+                  - familiarId
+                  - queryMutate
+                -
+                  - headset
+                  - queryMutate
+                -
+                  - isMono
+                  - queryMutate
+                -
+                  - killCode
+                  - queryMutate
+                -
+                  - languageCode
+                  - queryMutate
+                -
+                  - mode
+                  - queryMutate
+                -
+                  - movie
+                  - queryMutate
+                -
+                  - movies
+                  - queryMutate
+                -
+                  - isMultiFile
+                  - queryMutate
+                -
+                  - runtime
+                  - queryMutate
+                -
+                  - userNeedInternet
+                  - queryMutate
+                -
+                  - userRecordStats
+                  - queryMutate
+                -
+                  - uuid
+                  - queryMutate
+                -
+                  - venue
+                  - queryMutate
+                -
+                  - venueClosingTime
+                  - queryMutate
+                -
+                  - venueCurrencyType
+                  - queryMutate
+                -
+                  - venueOpeningTime
+                  - queryMutate
+                -
+                  - venueTicketPrice
+                  - queryMutate
+                -
+                  - visitLanguage
+                  - queryMutate
+                -
+                  - visitStart
+                  - queryMutate
+          -
+            - 'schema-Public Schema'
+            -
+              __assoc__:
+                -
+                  - adminRecordData
+                  - queryMutate
+                -
+                  - adminRequireInternet
+                  - queryMutate
+                -
+                  - channels
+                  - queryMutate
+                -
+                  - companyLogo
+                  - queryMutate
+                -
+                  - companyName
+                  - queryMutate
+                -
+                  - familiarId
+                  - queryMutate
+                -
+                  - headset
+                  - queryMutate
+                -
+                  - isMono
+                  - queryMutate
+                -
+                  - killCode
+                  - queryMutate
+                -
+                  - languageCode
+                  - queryMutate
+                -
+                  - mode
+                  - queryMutate
+                -
+                  - movie
+                  - queryMutate
+                -
+                  - movies
+                  - queryMutate
+                -
+                  - isMultiFile
+                  - queryMutate
+                -
+                  - runtime
+                  - queryMutate
+                -
+                  - userNeedInternet
+                  - queryMutate
+                -
+                  - userRecordStats
+                  - queryMutate
+                -
+                  - uuid
+                  - queryMutate
+                -
+                  - venue
+                  - queryMutate
+                -
+                  - venueClosingTime
+                  - queryMutate
+                -
+                  - venueCurrencyType
+                  - queryMutate
+                -
+                  - venueOpeningTime
+                  - queryMutate
+                -
+                  - venueTicketPrice
+                  - queryMutate
+                -
+                  - visitLanguage
+                  - queryMutate
+                -
+                  - visitStart
+                  - queryMutate
+          -
+            - 'schema-Stats Schema'
+            -
+              __assoc__:
+                -
+                  - adminRecordData
+                  - queryMutate
+                -
+                  - adminRequireInternet
+                  - queryMutate
+                -
+                  - channels
+                  - queryMutate
+                -
+                  - companyLogo
+                  - queryMutate
+                -
+                  - companyName
+                  - queryMutate
+                -
+                  - familiarId
+                  - queryMutate
+                -
+                  - headset
+                  - queryMutate
+                -
+                  - isMono
+                  - queryMutate
+                -
+                  - killCode
+                  - queryMutate
+                -
+                  - languageCode
+                  - queryMutate
+                -
+                  - mode
+                  - queryMutate
+                -
+                  - movie
+                  - queryMutate
+                -
+                  - movies
+                  - queryMutate
+                -
+                  - isMultiFile
+                  - queryMutate
+                -
+                  - runtime
+                  - queryMutate
+                -
+                  - userNeedInternet
+                  - queryMutate
+                -
+                  - userRecordStats
+                  - queryMutate
+                -
+                  - uuid
+                  - queryMutate
+                -
+                  - venue
+                  - queryMutate
+                -
+                  - venueClosingTime
+                  - queryMutate
+                -
+                  - venueCurrencyType
+                  - queryMutate
+                -
+                  - venueOpeningTime
+                  - queryMutate
+                -
+                  - venueTicketPrice
+                  - queryMutate
+                -
+                  - visitLanguage
+                  - queryMutate
+                -
+                  - visitStart
+                  - queryMutate
+      forbiddenField: "User doesn't have permission to access requested field(s)"
+      forbiddenMutation: "User doesn't have permission to perform this mutation"
+      googleClientId: null
+      googleEmailMismatch: "Email address doesn't match allowed Google domains"
+      googleTokenIdInvalid: 'Invalid Google Token ID'
+      granularSchemas: null
+      invalidEmailAddress: 'Invalid email address'
+      invalidHeader: 'Invalid Authorization Header'
+      invalidJwtSecretKey: 'Invalid JWT Secret Key'
+      invalidLogin: "We couldn't log you in with the provided details"
+      invalidMagicCode: 'Invalid magic code'
+      invalidOauthToken: 'Invalid OAuth Token'
+      invalidPasswordMatch: 'Passwords do not match'
+      invalidPasswordUpdate: "We couldn't update the password with the provided details"
+      invalidRefreshToken: 'Invalid Refresh Token'
+      invalidRequest: 'Cannot validate request'
+      invalidSchema: 'No schema has been set for this user group'
+      invalidUserUpdate: "We couldn't update the user with the provided details"
+      jwtExpiration: '30 minutes'
+      jwtRefreshExpiration: '3 months'
+      jwtSecretKey: iuwJSU9TfnkZO9_5jYhtPWtWp2gplWme
+      magicLinkSent: 'You will receive an email if it matches an account in our system'
+      microsoftAppId: null
+      microsoftAppSecret: null
+      microsoftEmailMismatch: "Email address doesn't match allowed Microsoft domains"
+      microsoftRedirectUrl: null
+      passwordResetRequired: 'Password reset required; please check your email'
+      passwordResetSent: 'You will receive an email if it matches an account in our system'
+      passwordSaved: 'Successfully saved password'
+      passwordUpdated: 'Successfully updated password'
+      permissionType: single
+      sameSitePolicy: strict
+      schemaId: null
+      schemaName: 'Public Schema'
+      siteId: null
+      skipActivatedCheck: null
+      skipSocialActivation: null
+      tokenNotFound: "We couldn't find any matching tokens"
+      twitterApiKey: null
+      twitterApiKeySecret: null
+      twitterEmailMismatch: "Email address doesn't match allowed Twitter domains"
+      twitterRedirectUrl: null
+      userActivated: 'Successfully activated user'
+      userGroup: '2'
+      userHasPassword: 'User not password-less'
+      userNotActivated: 'Please activate your account'
+      userNotFound: "We couldn't find any matching users"
+      volumeNotFound: "We couldn't find any matching volumes"
 system:
   edition: pro
   live: true
   name: 'Emagine VR Analytics'
   retryDuration: null
   schemaVersion: 5.7.0.3
-  timeZone: Europe/Dublin
+  timeZone: UTC

@@ -1,5 +1,4 @@
 columnSuffix: odumgdut
-contentColumnType: 'decimal(12,2)'
 handle: venueTicketPrice
 instructions: null
 name: 'Venue Ticket Price'
@@ -13,6 +12,7 @@ settings:
   previewCurrency: null
   previewFormat: decimal
   size: null
+  step: null
   suffix: null
 translationKeyFormat: null
 translationMethod: none

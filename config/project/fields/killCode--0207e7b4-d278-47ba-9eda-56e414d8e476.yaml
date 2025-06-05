@@ -1,5 +1,4 @@
 columnSuffix: mxaepfpm
-contentColumnType: smallint(1)
 handle: killCode
 instructions: null
 name: 'Kill code'
@@ -13,6 +12,7 @@ settings:
   previewCurrency: null
   previewFormat: decimal
   size: 1
+  step: null
   suffix: null
 translationKeyFormat: null
 translationMethod: none

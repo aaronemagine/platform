@@ -1,5 +1,4 @@
 columnSuffix: yknlbngj
-contentColumnType: boolean
 handle: adminRequireInternet
 instructions: null
 name: 'Admin Require Internet'

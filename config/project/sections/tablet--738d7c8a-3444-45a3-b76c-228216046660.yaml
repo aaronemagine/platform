@@ -14,11 +14,11 @@ previewTargets:
         - label
         - 'Primary entry page'
       -
-        - urlFormat
-        - '{url}'
-      -
         - refresh
         - '1'
+      -
+        - urlFormat
+        - '{url}'
 propagationMethod: all
 siteSettings:
   f957802c-8f19-44d3-a30a-668d452862ac: # Emagine VR Analytics
